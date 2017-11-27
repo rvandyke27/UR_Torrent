@@ -1,12 +1,39 @@
 import hashlib
 
-from bencoding import *
+from bencodepy import decode_from_file, decode
+from collections import OrderedDict
+import json
+
+#generate handshake message
+#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
+def handshake( peer_id ):
+	return
+	#info_hash = hashlib.sha1(info_dict.items)
+	#info_key comes from metainfo file
+	#peer_id comes from tracker
 
 def main():
 	#parse metainfo file
-	metainfo_file_path = "\UR.mp3.torrent"
+	metainfo_file_path = "UR.mp3.torrent".encode('utf-8')
 	decoded_metainfo = decode_from_file(metainfo_file_path)
-	print(decoded_metainfo)
+	#print("Decoded metainfo file\n")
+	#print(decoded_metainfo)
+	info_dict = decoded_metainfo[b'info']
+	#print("info dictionary\n")
+	#print(info_dict)
+	
+
+
+	info_hash = hashlib.sha1()
+	for key in info_dict.keys():
+		info_hash.update(key)
+		print(key)
+
+	for value in info_dict.values():
+		info_hash.update(bytearray(value))
+		print(value)
+
+	print(info_hash)
 
 	#Contact tracker and get list of peers
 
@@ -46,12 +73,5 @@ def main():
 
 	#status
 
-if__name__=="__main__":
+if __name__=="__main__":
 	main()
-
-#generate handshake message
-#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
-def handshake( peer_id ):
-	info_hash = hashlib.sha1(info_key);
-	#info_key comes from metainfo file
-	#peer_id comes from tracker
