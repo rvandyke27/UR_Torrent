@@ -1,10 +1,10 @@
 #Contact tracker and get list of peers
 
-
+from bencoding import *
 #initiate handshaking with peers
 #handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
 #info_key comes from metainfo file
-info_hash = hashlib.sha1(info_key);
+#info_hash = hashlib.sha1(info_key);
 #peer_id comes from tracke
 
 #download/upload chunks according to peer wire protocol
@@ -38,3 +38,5 @@ info_hash = hashlib.sha1(info_key);
 	#show
 
 	#status
+message = "6438 3a61 6e6e 6f75 6e63 6533 303a 6874"
+bencode.decode(message)
