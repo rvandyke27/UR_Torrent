@@ -6,24 +6,17 @@ import json
 
 #generate handshake message
 #handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
-def handshake( peer_id ):
+def handshake( peer_id, info_hash ):
 	return
-	#info_hash = hashlib.sha1(info_dict.items)
-	#info_key comes from metainfo file
 	#peer_id comes from tracker
 
 def main():
 	#parse metainfo file
 	metainfo_file_path = "UR.mp3.torrent".encode('utf-8')
 	decoded_metainfo = decode_from_file(metainfo_file_path)
-	#print("Decoded metainfo file\n")
-	#print(decoded_metainfo)
-	info_dict = decoded_metainfo[b'info']
-	#print("info dictionary\n")
-	#print(info_dict)
 	
-
-
+	info_dict = decoded_metainfo[b'info']
+	
 	info_hash = hashlib.sha1()
 	for key in info_dict.keys():
 		info_hash.update(key)
