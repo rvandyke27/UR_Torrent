@@ -3,10 +3,10 @@ from bencodepy import decode_from_file
 
 def main():
 	#parse metainfo file
-	metainfo_file_path = "\UR.torrent"
+	metainfo_file_path = "\UR.mp3.torrent"
 	decoded_metainfo = decode_from_file(metainfo_file_path)
 	print(decoded_metainfo)
-	
+
 	#Contact tracker and get list of peers
 
 	#initiate handshaking with peers
