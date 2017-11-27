@@ -1,5 +1,5 @@
 import hashlib
-from bencodepy import decode_from_file
+from bencoding import *
 
 def main():
 	#parse metainfo file
@@ -43,6 +43,7 @@ def main():
 
 		#status
 
+
 if__name__=="__main__":
 	main()
 
@@ -52,3 +53,4 @@ def handshake( peer_id ):
 	info_hash = hashlib.sha1(info_key);
 	#info_key comes from metainfo file
 	#peer_id comes from tracker
+
