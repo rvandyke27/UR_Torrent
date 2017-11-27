@@ -1,6 +1,11 @@
 #Contact tracker and get list of peers
 
+
 #initiate handshaking with peers
+#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
+#info_key comes from metainfo file
+info_hash = hashlib.sha1(info_key);
+#peer_id comes from tracke
 
 #download/upload chunks according to peer wire protocol
 	#maintain state information for each connection with remote peer
