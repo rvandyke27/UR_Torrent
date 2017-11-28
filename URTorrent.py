@@ -75,7 +75,7 @@ def main():
 	
 
 	while True:
-		command = input()
+		command = input(">")
 		#metainfo
 		if(command == "metainfo"):
 			print("IP/port    :  " + str(client.ip_addr) + "/" + str(client.port))
