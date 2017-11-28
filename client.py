@@ -1,6 +1,6 @@
 
 import urllib.parse
-from bencoding import *
+#from bencoding.bencode import *
 from bencodepy import decode_from_file, decode
 import hashlib
 import connection
@@ -8,6 +8,7 @@ import struct
 import os
 from metainfo import Metainfo
 import socket
+import re
 
 class Client:
 
@@ -45,6 +46,18 @@ Content-Type: text/plain
 Pragma: no-cache
 
 d8:intervali1800e5:peers0:e"""
+		if(response[9] != '2'):
+			print("ERROR")
+
+		else:
+			print("parse content")
+		print(response)
+
+		next_line = False
+		parsed = re.split("\n\n", response) #might need to change to "\r\n" when using real response
+		#print(parsed)
+		decoded_response = decode(parsed[1].encode('utf-8'))
+		print(decoded_response)
 
 		#message = read/parse response from socket 
 		#from tracker reply to GET request
