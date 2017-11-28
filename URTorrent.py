@@ -1,10 +1,19 @@
 import hashlib
-
+import client
 from bencodepy import decode_from_file, decode
 from collections import OrderedDict
 import json
 
+
+#generate handshake message
+#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
+def handshake( peer_id, info_hash ):
+	return
+	#peer_id comes from tracker
+
 def main():
+
+	client = Client('127.0.0.1', 9999, 'UR.mp3')
 	#parse metainfo file
 	metainfo_file_path = "UR.mp3.torrent".encode('utf-8')
 	decoded_metainfo = decode_from_file(metainfo_file_path)
@@ -48,8 +57,15 @@ def main():
 		#cancel (can be ignored)
 
 	#implement commands
-		#metainfo
 
+	def print_metainfo():
+		print("IP/port    : " + client.ip_addr + "/" + client.port)
+
+	while True:
+		command = input()
+		#metainfo
+		if(command == "metainfo"):
+			print_metainfo()
 		#announce
 
 		#trackerinfo
