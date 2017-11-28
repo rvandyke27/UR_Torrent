@@ -38,4 +38,4 @@ class Metainfo:
 		print("pieces' hashes:  ")
 		num_pieces = math.ceil(self.info_dict[b"length"]/self.info_dict[b"piece length"])
 		for i in range(0, num_pieces):
-			print(self.info_dict[b"pieces"][i:i+20+1].hex())
+			print(str(i) + " " + self.info_dict[b"pieces"][i:i+20+1].hex())

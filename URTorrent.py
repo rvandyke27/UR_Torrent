@@ -75,11 +75,11 @@ def main():
 	
 
 	while True:
-		command = input()
+		command = input(">")
 		#metainfo
 		if(command == "metainfo"):
 			print("IP/port    :  " + str(client.ip_addr) + "/" + str(client.port))
-			print("ID        :  " + "someplaceholderstuff")
+			print("ID        :  " + str(client.peer_id.hex()))
 			client.metainfo.print()
 		#announce
 
