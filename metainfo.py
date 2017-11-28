@@ -21,7 +21,7 @@ class Metainfo:
 		for value in self.info_dict.values():
 			self.info_hash.update(bytearray(value))
 
-		self.announce = str(self.decoded_metainfo[b"announce"])
+		self.announce = self.decoded_metainfo[b"announce"].decode('utf-8')
 		self.filename = filename
 		self.piece_length = self.info_dict[b"piece length"]
 		self.file_length = self.info_dict[b"length"]

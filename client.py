@@ -6,6 +6,7 @@ import hashlib
 import connection
 import struct
 import os
+import socket
 from metainfo import Metainfo
 import socket
 import re
@@ -21,12 +22,13 @@ class Client:
 		self.port = port
 		self.peer_id = os.urandom(20)
 		self.info_hash = self.metainfo.info_hash
-
 		self.uploaded = 0
 		self.downloaded = 0
+		#if client has file, set left to 0
 		self.left = self.metainfo.file_length
 
-
+		self.check_for_file()
+		self.send_GET_request(0)
 		
 		#from metainfo file
 		# self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -71,16 +73,38 @@ d8:intervali1800e5:peers0:e"""
 		#if file is in local directory start running in seeder state
 		#else if file is not in local directory run in leecher state
 
-	def send_GET_request(self):
-		get_request = bytearray("GET /announce?info_hash=")
-		get_request.extend(urllib.parse.quote_plus(self.metainfo.info_hash.digest.encode('utf-8')))
-		get_request.extend("&peer_id=")
-		get_request.extend(urllib.parse.quote_plus(self.peer_id.encode('utf-8')))
-		get_request.extend("&port=")
-		get_request.extend(self.port)
-		#get tracker information dictionary from metainfo file
-		#info_hash, peer_id, port, uploaded, downloaed, left, compact, event, 
-		#send HTTP request to tracker	
+	def send_GET_request(self, event):
+		get_request = "GET /announce?info_hash="
+		get_request += urllib.parse.quote_plus(self.metainfo.info_hash.digest())
+		get_request += "&peer_id="
+		get_request += urllib.parse.quote_plus(self.peer_id)
+		get_request += "&port="
+		get_request += str(self.port)
+		#ignore key
+		get_request += "&uploaded="
+
+		get_request += "&downloaded"
+
+		get_request += "&left"
+
+		get_request += "&compact=1&event="
+		if event==0:
+			get_request += "started HTTP/1.1\r\n"
+		elif event==1:
+			get_request += "completed HTTP 1.1\r\n"
+		elif event==2:
+			get_request += "stopped HTTP/1.1\r\n"
+		else:
+			get_request += " HTTP/1.1\r\n"
+		print(get_request)
+
+		#send HTTP request to tracker
+		tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		tracker_socket.connect(('localhost', 6969))
+		tracker_socket.send(get_request.encode('utf-8'))
+		tracker_response = tracker_socket.recv(1024)
+		print(tracker_response)
+
 		return 0
 
 	# def send_GET_request_test(self):
