@@ -6,7 +6,6 @@ import hashlib
 import connection
 import struct
 import os
-
 from metainfo import Metainfo
 
 class Client:
@@ -23,7 +22,7 @@ class Client:
 
 		self.uploaded = 0
 		self.downloaded = 0
-		self.left = metainfo.file_length
+		self.left = self.metainfo.file_length
 
 		self.check_for_file()
 		self.send_GET_request()
