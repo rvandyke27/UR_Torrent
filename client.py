@@ -7,16 +7,19 @@ import connection
 import struct
 import os
 
+from metainfo import Metainfo
+
 class Client:
 
-	def __init__(self, ip_addr, port, filename, metainfo):
+	def __init__(self, ip_addr, port, filename):
 
 		#list of peers (and connection info) that this client is connected to
 		self.connection_list = []
+		self.metainfo = Metainfo(filename)
 		self.ip_addr = ip_addr
 		self.port = port
-		self.metainfo = metainfo
 		self.peer_id = os.urandom(20)
+		self.info_hash = self.metainfo.info_hash
 
 		self.uploaded = 0
 		self.downloaded = 0
