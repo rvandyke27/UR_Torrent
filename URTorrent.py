@@ -79,7 +79,7 @@ def main():
 		#metainfo
 		if(command == "metainfo"):
 			print("IP/port    :  " + str(client.ip_addr) + "/" + str(client.port))
-			print("ID        :  " + "someplaceholderstuff")
+			print("ID        :  " + str(client.peer_id))
 			client.metainfo.print()
 		#announce
 

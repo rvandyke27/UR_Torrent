@@ -23,7 +23,7 @@ class Client:
 
 		self.uploaded = 0
 		self.downloaded = 0
-		self.left = metainfo.size
+		self.left = metainfo.file_length
 
 		self.check_for_file()
 		self.send_GET_request()
