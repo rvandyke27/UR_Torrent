@@ -8,7 +8,6 @@ import json
 
 def main():
 
-	client = Client('127.0.0.1', 9999, 'UR.mp3')
 	#parse metainfo file
 	metainfo_file_path = "UR.mp3.torrent".encode('utf-8')
 	decoded_metainfo = decode_from_file(metainfo_file_path)
@@ -30,6 +29,7 @@ def main():
 	#Contact tracker and get list of peers
 
 	#Create client
+	client = Client('127.0.0.1', 9999, 'UR.mp3', info_hash)
 
 	#initiate handshaking with peers
 
@@ -69,8 +69,8 @@ def main():
 		num_pieces = math.ceil(info_dict[b"length"]/info_dict[b"piece length"])
 		print(num_pieces)
 		print("other")
-	#	for i in range(0, num_pieces):
-	#		print(info_dict[b"pieces"][i:i+20+1].hexdigest())
+		for i in range(0, num_pieces):
+			print(info_dict[b"pieces"][i:i+20+1].hex())
 		
 
 	
