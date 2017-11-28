@@ -27,12 +27,12 @@ class Client:
 		#self.tracker_id = tracker_id from resposne
 		#self.complete = ...
 
-	def check_for_file():
+	def check_for_file(self):
 		return 0
 		#if file is in local directory start running in seeder state
 		#else if file is not in local directory run in leecher state
 
-	def send_GET_request():
+	def send_GET_request(self):
 
 		#get tracker information dictionary from metainfo file
 		#urlib.parse.quote_plus("string to url encode")
@@ -40,12 +40,12 @@ class Client:
 		#send HTTP request to tracker	
 		return 0
 
-	def next_piece():
+	def next_piece(self):
 		#find rarest missing pieces
 		#return index of piece
 		return 0
 
-	def request_piece(index);
+	def request_piece(self, index):
 		#find peers that client is interested in that are not choking client
 		#request desired piece of file
 		#while file not complete

@@ -1,5 +1,6 @@
 import hashlib
-import client
+from client import Client
+import math
 from bencodepy import decode_from_file, decode
 from collections import OrderedDict
 import json
@@ -7,7 +8,7 @@ import json
 #generate handshake message
 #handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
 def handshake( peer_id, info_hash ):
-	return
+	return 0
 	#peer_id comes from tracker
 
 
@@ -24,11 +25,11 @@ def main():
 	info_hash = hashlib.sha1()
 	for key in info_dict.keys():
 		info_hash.update(key)
-		print(key)
+		print("Key: " + str(key) + '\n')
 
 	for value in info_dict.values():
 		info_hash.update(bytearray(value))
-		print(value)
+		print("val: " + str(value) + '\n')
 
 	print(info_hash)
 
@@ -60,7 +61,22 @@ def main():
 	#implement commands
 
 	def print_metainfo():
-		print("IP/port    : " + client.ip_addr + "/" + client.port)
+		print("IP/port    :  " + str(client.ip_addr) + "/" + str(client.port) )
+		print("ID        :  " + "someplaceholderstuff")
+		print("metainfo file:  " + "UR.mp3.torrent")
+		print("info hash    :  " + str(info_hash.hexdigest()))
+		print("filename    :  " + "UR.mp3")
+		print("piece length:  " + str(info_dict[b"piece length"]))
+		print("file size:  " + str(info_dict[b"length"]))
+		print("announce URL:  " + str(decoded_metainfo[b"announce"]))
+		print("pieces' hashes:  ")
+		num_pieces = math.ceil(info_dict[b"length"]/info_dict[b"piece length"])
+		print(num_pieces)
+	#	for i in range(0, num_pieces):
+	#		print(info_dict[b"pieces"][i:i+20+1].hexdigest())
+		
+
+	
 
 	while True:
 		command = input()
