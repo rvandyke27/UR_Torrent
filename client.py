@@ -1,19 +1,22 @@
 
 import urllib.parse
 from bencoding import *
+from bencodepy import decode_from_file, decode
+import hashlib
 import connection
+import struct
 
 class Client:
 
-	def __init__(self, ip_addr, port, filename):
+	def __init__(self, ip_addr, port, filename, info_hash):
 
 		#list of peers (and connection info) that this client is connected to
 		self.connection_list = []
 		self.ip_addr = ip_addr
 		self.port = port
+		self.info_hash = info_hash
 		self.check_for_file()
 		self.send_GET_request()
-
 		
 
 		
@@ -45,12 +48,23 @@ class Client:
 		#return index of piece
 		return 0
 
-	def request_piece(index);
+	def request_piece(index):
 		#find peers that client is interested in that are not choking client
 		#request desired piece of file
 		#while file not complete
 			#i = next_piece()
 			#request_piece(i)
 		return 0
+
+	#generate handshake message 
+	def generate_handshake_msg(self):
+		handshake = bytearray(b'\x18')
+		handshake.extend(map(ord, "URTorrent protocol"))
+		handshake.extend(bytearray(8))
+		handshake.extend(info_hash.digest())
+		handshake.extend(map(ord, peer_id))
+		print(handshake)
+		print(len(handshake))
+		return
 
 
