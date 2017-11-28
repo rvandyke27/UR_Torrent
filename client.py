@@ -5,16 +5,18 @@ from bencodepy import decode_from_file, decode
 import hashlib
 import connection
 import struct
+from metainfo import Metainfo
 
 class Client:
 
-	def __init__(self, ip_addr, port, filename, info_hash):
+	def __init__(self, ip_addr, port, filename):
 
 		#list of peers (and connection info) that this client is connected to
 		self.connection_list = []
+		self.metainfo = Metainfo(filename)
 		self.ip_addr = ip_addr
 		self.port = port
-		self.info_hash = info_hash
+		self.info_hash = self.metainfo.info_hash
 		self.check_for_file()
 		self.send_GET_request()
 		

@@ -1,6 +1,5 @@
 
 import hashlib
-from client import Client
 import math
 from bencodepy import decode_from_file, decode
 from collections import OrderedDict
@@ -8,25 +7,25 @@ import json
 
 class Metainfo:
 
-	def __init__(self, filename = "UR.mp3"):
+	def __init__(self, filename):
 
 		self.metainfo_file_path = "UR.mp3.torrent".encode('utf-8')
-		self.decoded_metainfo = decode_from_file(metainfo_file_path)
+		self.decoded_metainfo = decode_from_file(self.metainfo_file_path)
 	
-		self.info_dict = decoded_metainfo[b'info']
+		self.info_dict = self.decoded_metainfo[b'info']
 	
 		self.info_hash = hashlib.sha1()
-		for key in sel.finfo_dict.keys():
+		for key in self.info_dict.keys():
 			self.info_hash.update(key)
 
-		for value in info_dict.values():
+		for value in self.info_dict.values():
 			self.info_hash.update(bytearray(value))
 
-		self.announce = str(decoded_metainfo[b"announce"])
+		self.announce = str(self.decoded_metainfo[b"announce"])
 		self.filename = filename
-		self.piece_length = info_dict[b"piece length"]
-		self.file_length = info_dict[b"length"]
-		self.pieces = info_dict[b"pieces"]
+		self.piece_length = self.info_dict[b"piece length"]
+		self.file_length = self.info_dict[b"length"]
+		self.pieces = self.info_dict[b"pieces"]
 
 
 	def print(self):
