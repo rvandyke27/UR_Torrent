@@ -57,25 +57,8 @@ def main():
 
 	#implement commands
 
-	# def print_metainfo():
-	# 	print("IP/port    :  " + str(client.ip_addr) + "/" + str(client.port) )
-	# 	print("ID        :  " + "someplaceholderstuff")
-	# 	print("metainfo file:  " + "UR.mp3.torrent")
-	# 	print("info hash    :  " + str(info_hash.hexdigest()))
-	# 	print("filename    :  " + "UR.mp3")
-	# 	print("piece length:  " + str(info_dict[b"piece length"]))
-	# 	print("file size:  " + str(info_dict[b"length"]))
-	# 	print("announce URL:  " + str(decoded_metainfo[b"announce"]))
-	# 	print("pieces' hashes:  ")
-	# 	num_pieces = math.ceil(info_dict[b"length"]/info_dict[b"piece length"])
-	# 	for i in range(0, num_pieces):
-	# 		print(info_dict[b"pieces"][i:i+20+1].hex())
-		
-
-	
-
 	while True:
-		command = input(">")
+		command = input("URTorrent>")
 		#metainfo
 		if(command == "metainfo"):
 			print("IP/port    :  " + str(client.ip_addr) + "/" + str(client.port))

@@ -79,26 +79,21 @@ d8:intervali1800e5:peers0:e"""
 		get_request.extend(bytes(str(self.port), "ascii"))
 		#ignore key
 		get_request.extend(map(ord, "&uploaded="))
-
+		get_request.extend(bytes(str(self.uploaded), "ascii"))
 		get_request.extend(map(ord, "&downloaded"))
-
+		get_request.extend(bytes(str(self.downloaded), "ascii"))
 		get_request.extend(map(ord, "&left"))
-
+		get_request.extend(bytes(str(self.left), "ascii"))
 		get_request.extend(map(ord, "&compact=1&event="))
 		if event==0:
-			get_request.extend(map(ord, "started HTTP/1.1\r\n"))
+			get_request.extend(map(ord, "started HTTP/1.1\r\n\r\n"))
 		elif event==1:
-			get_request.extend(map(ord, "completed HTTP 1.1\r\n"))
+			get_request.extend(map(ord, "completed HTTP 1.1\r\n\r\n"))
 		elif event==2:
-			get_request.extend(map(ord, "stopped HTTP/1.1\r\n"))
+			get_request.extend(map(ord, "stopped HTTP/1.1\r\n\r\n"))
 		else:
-			get_request.extend(map(ord, " HTTP/1.1\r\n"))
+			get_request.extend(map(ord, " HTTP/1.1\r\n\r\n"))
 		
-
-		get_request = bytearray(map(ord, """GET /announce?info_hash=_tWL%26%BD%C4%BDsEn%FD%7E1%2CJ3%40s%1B&
-peer_id=M3-4-2--5ffd511f4079&port=6881&key=585b8345&uploaded=0&downloaded=0&
-left=0&compact=1&event=started HTTP/1.1\r\n\r\n"""))
-
 		print(get_request)
 
 		#send HTTP request to tracker
