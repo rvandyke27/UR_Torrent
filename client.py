@@ -25,7 +25,7 @@ class Client:
 		self.left = self.metainfo.file_length
 
 		self.check_for_file()
-		self.send_GET_request()
+		#self.send_GET_request()
 		
 		#from metainfo file
 
