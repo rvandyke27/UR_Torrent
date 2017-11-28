@@ -5,13 +5,6 @@ from bencodepy import decode_from_file, decode
 from collections import OrderedDict
 import json
 
-#generate handshake message
-#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
-def handshake( peer_id, info_hash ):
-	return 0
-	#peer_id comes from tracker
-
-
 
 def main():
 
@@ -25,15 +18,18 @@ def main():
 	info_hash = hashlib.sha1()
 	for key in info_dict.keys():
 		info_hash.update(key)
-		print("Key: " + str(key) + '\n')
 
 	for value in info_dict.values():
 		info_hash.update(bytearray(value))
-		print("val: " + str(value) + '\n')
 
-	print(info_hash)
+
+	print(info_hash.hexdigest())
+
+	#Determine if leecher or seeder
 
 	#Contact tracker and get list of peers
+
+	#Create client
 
 	#initiate handshaking with peers
 
