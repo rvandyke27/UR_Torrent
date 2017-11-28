@@ -65,12 +65,21 @@ def main():
 			print("ID        :  " + str(client.peer_id.hex()))
 			client.metainfo.print()
 		#announce
+		if(command == "announce"):
+			client.send_GET_request(-1)
+			#print status line of response
+			#print tracker info
 
 		#trackerinfo
+		if(command == "trackerinfo"):
 
 		#show
 
 		#status
+		if(command == "status"):
+			print("Downloaded | Uploaded | Left    | My bit field \n---------------------------------------------------")
+			print('{:11}|{:10}|{:6}|{19}'.format(client.downloaded, client.uploaded, client.left, client.bitfield))
+
 
 	#status
 
