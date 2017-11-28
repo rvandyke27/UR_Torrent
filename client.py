@@ -56,7 +56,7 @@ d8:intervali1800e5:peers0:e"""
 			parsed = re.split("\n\n", response) #might need to change to "\r\n" when using real response
 			#print(parsed)
 			decoded_response = decode(parsed[1].encode('utf-8'))
-			print(decoded_response)
+		#	print(decoded_response)
 
 		#message = read/parse response from socket 
 		#from tracker reply to GET request
@@ -71,34 +71,40 @@ d8:intervali1800e5:peers0:e"""
 		#else if file is not in local directory run in leecher state
 
 	def send_GET_request(self, event):
-		get_request = "GET /announce?info_hash="
-		get_request += urllib.parse.quote_plus(self.metainfo.info_hash.digest())
-		get_request += "&peer_id="
-		get_request += urllib.parse.quote_plus(self.peer_id)
-		get_request += "&port="
-		get_request += str(self.port)
+		get_request = bytearray(map(ord, "GET /announce?info_hash="))
+		get_request.extend(map(ord, urllib.parse.quote_plus(self.metainfo.info_hash.digest())))
+		get_request.extend(map(ord, "&peer_id="))
+		get_request.extend(map(ord, urllib.parse.quote_plus(self.peer_id)))
+		get_request.extend(map(ord, "&port="))
+		get_request.extend(bytes(str(self.port), "ascii"))
 		#ignore key
-		get_request += "&uploaded="
+		get_request.extend(map(ord, "&uploaded="))
 
-		get_request += "&downloaded"
+		get_request.extend(map(ord, "&downloaded"))
 
-		get_request += "&left"
+		get_request.extend(map(ord, "&left"))
 
-		get_request += "&compact=1&event="
+		get_request.extend(map(ord, "&compact=1&event="))
 		if event==0:
-			get_request += "started HTTP/1.1\r\n"
+			get_request.extend(map(ord, "started HTTP/1.1\r\n"))
 		elif event==1:
-			get_request += "completed HTTP 1.1\r\n"
+			get_request.extend(map(ord, "completed HTTP 1.1\r\n"))
 		elif event==2:
-			get_request += "stopped HTTP/1.1\r\n"
+			get_request.extend(map(ord, "stopped HTTP/1.1\r\n"))
 		else:
-			get_request += " HTTP/1.1\r\n"
+			get_request.extend(map(ord, " HTTP/1.1\r\n"))
+		
+
+		get_request = bytearray(map(ord, """GET /announce?info_hash=_tWL%26%BD%C4%BDsEn%FD%7E1%2CJ3%40s%1B&
+peer_id=M3-4-2--5ffd511f4079&port=6881&key=585b8345&uploaded=0&downloaded=0&
+left=0&compact=1&event=started HTTP/1.1\r\n\r\n"""))
+
 		print(get_request)
 
 		#send HTTP request to tracker
 		tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		tracker_socket.connect(('localhost', 6969))
-		tracker_socket.send(get_request.encode('utf-8'))
+		tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
+		tracker_socket.send(get_request)
 		tracker_response = tracker_socket.recv(1024)
 		print(tracker_response)
 
