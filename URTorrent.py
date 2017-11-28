@@ -4,12 +4,6 @@ from bencodepy import decode_from_file, decode
 from collections import OrderedDict
 import json
 
-#generate handshake message
-#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
-def handshake( peer_id, info_hash ):
-	return
-	#peer_id comes from tracker
-
 def main():
 	#parse metainfo file
 	metainfo_file_path = "UR.mp3.torrent".encode('utf-8')
@@ -26,7 +20,7 @@ def main():
 		info_hash.update(bytearray(value))
 		print(value)
 
-	print(info_hash)
+	print(info_hash.hexdigest())
 
 	#Contact tracker and get list of peers
 
@@ -68,3 +62,9 @@ def main():
 
 if __name__=="__main__":
 	main()
+
+#generate handshake message
+#handshake: (pstrlen)(pstr)(reserved)(info_hash)(peer_id) 
+def handshake( peer_id, info_hash ):
+	return
+	#peer_id comes from tracker
