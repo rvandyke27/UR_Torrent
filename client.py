@@ -53,13 +53,10 @@ d8:intervali1800e5:peers0:e"""
 
 		else:
 			print("parse content")
-		print(response)
-
-		next_line = False
-		parsed = re.split("\n\n", response) #might need to change to "\r\n" when using real response
-		#print(parsed)
-		decoded_response = decode(parsed[1].encode('utf-8'))
-		print(decoded_response)
+			parsed = re.split("\n\n", response) #might need to change to "\r\n" when using real response
+			#print(parsed)
+			decoded_response = decode(parsed[1].encode('utf-8'))
+			print(decoded_response)
 
 		#message = read/parse response from socket 
 		#from tracker reply to GET request
