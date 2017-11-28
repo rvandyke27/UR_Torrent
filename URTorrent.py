@@ -72,6 +72,7 @@ def main():
 		print("pieces' hashes:  ")
 		num_pieces = math.ceil(info_dict[b"length"]/info_dict[b"piece length"])
 		print(num_pieces)
+		print("other")
 	#	for i in range(0, num_pieces):
 	#		print(info_dict[b"pieces"][i:i+20+1].hexdigest())
 		
