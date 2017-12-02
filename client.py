@@ -66,6 +66,9 @@ class Client:
 			buf = connection.recv(1024)
 			if len(buf) > 0:
 				print("Message received", buf)
+				#check if handshake is valid/good
+				connection.send(self.generate_handshake_msg())
+				#split off thread to listen for piece requests on this socket
 				break
 			
 	
@@ -165,7 +168,7 @@ class Client:
 
 		new_connection.sock.send(handshake_message)
 		#just try to read hello message for now
-		print(new_connection.sock.recv(1024))
+		print("Received message ", new_connection.sock.recv(1024))
 		#check received handshake
 
 		#add connection to list if it's gucci
