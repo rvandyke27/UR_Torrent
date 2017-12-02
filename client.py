@@ -32,7 +32,8 @@ class Client:
 		self.bitfield = BitArray(self.metainfo.num_pieces)
 		if(self.check_for_file()):
 			self.bitfield.set(True)
-			self.left = 0
+			self.left = 0		
+
 		else:
 			self.bitfield.set(False)
 			self.left = self.metainfo.file_length
