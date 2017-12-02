@@ -5,9 +5,11 @@ import hashlib
 import connection
 import struct
 import os
+import os.path
 import socket
 from metainfo import Metainfo
 import re
+from bitstring import BitArray
 
 class Client:
 
@@ -16,6 +18,7 @@ class Client:
 		#list of peers (and connection info) that this client is connected to
 		self.connection_list = []
 		self.metainfo = Metainfo(filename)
+		self.filename = filename
 		self.ip_addr = ip_addr
 		self.port = port
 		self.peer_id = os.urandom(20)
@@ -24,11 +27,14 @@ class Client:
 		self.downloaded = 0
 		#if client has file, set left to 0 and bitfield to full
 		self.left = self.metainfo.file_length
-		self.bitfield = "11111111"
+
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
-
-		self.check_for_file()
+		self.bitfield = BitArray(self.metainfo.num_pieces)
+		if(self.check_for_file()):
+			self.bitfield.set(True)
+		else:
+			self.bitfield.set(False)
 		self.send_GET_request(0)
 		
 		#from metainfo file
@@ -85,8 +91,14 @@ class Client:
 				self.peer_list = peerlist
 
 	def check_for_file(self):
-		
-		return 0
+		if os.path.exists(self.filename):
+			print("FILE EXISTS")
+			return True
+
+		else:
+			print("FILE DOESN'T EXIST")
+			return False
+
 		#if file is in local directory start running in seeder state
 		#else if file is not in local directory run in leecher state
 

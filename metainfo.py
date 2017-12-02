@@ -26,6 +26,7 @@ class Metainfo:
 		self.piece_length = self.info_dict[b"piece length"]
 		self.file_length = self.info_dict[b"length"]
 		self.pieces = self.info_dict[b"pieces"]
+		self.num_pieces = math.ceil(self.info_dict[b"length"]/self.info_dict[b"piece length"])
 
 
 	def print(self):
@@ -36,6 +37,5 @@ class Metainfo:
 		print("file size:  " + str(self.info_dict[b"length"]))
 		print("announce URL:  " + str(self.decoded_metainfo[b"announce"])[1:])
 		print("pieces' hashes:  ")
-		num_pieces = math.ceil(self.info_dict[b"length"]/self.info_dict[b"piece length"])
-		for i in range(0, num_pieces):
+		for i in range(0, self.num_pieces):
 			print(str(i) + " " + self.info_dict[b"pieces"][i:i+20+1].hex())
