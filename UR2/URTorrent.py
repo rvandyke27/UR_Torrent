@@ -1,5 +1,7 @@
 import sys
-sys.path.insert(0, '/home/rebecca/final_project')
+up1 = os.path.abspath('..') 
+sys.path.insert(0, up1)
+
 import hashlib
 from client import Client
 from metainfo import Metainfo
