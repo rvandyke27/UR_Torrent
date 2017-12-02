@@ -1,4 +1,6 @@
 import sys
+sys.path.insert(0, '/Users/aviwebberman/Desktop/GitHub/final_project')
+
 import hashlib
 from client import Client
 from metainfo import Metainfo

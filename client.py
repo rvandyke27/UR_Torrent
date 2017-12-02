@@ -94,6 +94,7 @@ class Client:
 				self.peer_list = peerlist
 			
 	def check_for_file(self):
+		
 		return 0
 		#if file is in local directory start running in seeder state
 		#else if file is not in local directory run in leecher state
