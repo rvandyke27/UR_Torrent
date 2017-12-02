@@ -64,20 +64,29 @@ class Client:
 			#check for failure reason
 
 			self.interval = response_dict[b'interval']
-			self.tracker_id = response_dict[b'tracker id']
+			#self.tracker_id = response_dict[b'tracker id']
 			self.complete = response_dict[b'complete']
 			self.incomplete = response_dict[b'incomplete']
 
-			#parse list of peerss
+			#parse list of peers
+			peerlist = list()
+			unparsed_peers = response_dict[b'peers']
+			print(unparsed_peers)
+			print(unparsed_peers[0])
+			print(unparsed_peers[1])
+			print(unparsed_peers[2])
+			print(unparsed_peers[3])
+			print(unparsed_peers[4])
+			print(unparsed_peers[5])
+
+			#add peers to list of tuples (IP, port)
+			for x in range(len(unparsed_peers)//6):
+				print(x)
+				peerlist.append((unparsed_peers[x:x+4], unparsed_peers[x+4:x+6]))
+
+			print(peerlist);
+			self.peer_list = peerlist
 			
-
-		#message = read/parse response from socket 
-		#from tracker reply to GET request
-		#self.peer_list = {} from response
-		#self.interval = interval part of response
-		#self.tracker_id = tracker_id from resposne
-		#self.complete = ...
-
 	def check_for_file(self):
 		return 0
 		#if file is in local directory start running in seeder state
