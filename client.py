@@ -26,15 +26,16 @@ class Client:
 		self.uploaded = 0
 		self.downloaded = 0
 		#if client has file, set left to 0 and bitfield to full
-		self.left = self.metainfo.file_length
 
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 		self.bitfield = BitArray(self.metainfo.num_pieces)
 		if(self.check_for_file()):
 			self.bitfield.set(True)
+			self.left = 0
 		else:
 			self.bitfield.set(False)
+			self.left = self.metainfo.file_length
 		self.send_GET_request(0)
 		
 		#from metainfo file

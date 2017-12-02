@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/Users/aviwebberman/Desktop/GitHub/final_project')
+sys.path.insert(0, '/home/rebecca/final_project')
 import hashlib
 from client import Client
 from metainfo import Metainfo
@@ -35,7 +35,7 @@ def main():
 	#Contact tracker and get list of peers
 
 	#Create client
-	client = Client('127.0.0.1', 9999, 'UR.mp3')
+	client = Client('127.0.0.1', 9998, 'UR.mp3')
 
 	#initiate handshaking with peers
 
