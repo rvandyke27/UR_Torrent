@@ -58,8 +58,17 @@ class Client:
 			print(parsed)
 			split_parsed = parsed.split('\r\n\r\n')
 			print(split_parsed)
-			response_dict = split_parsed[1];
-			print(decode(response_dict.encode('utf-8')))
+			response_dict = decode(split_parsed[1].encode('utf-8'))
+			print(response_dict)
+
+			#check for failure reason
+
+			self.interval = response_dict[b'interval']
+			self.tracker_id = response_dict[b'tracker id']
+			self.complete = response_dict[b'complete']
+			self.incomplete = response_dict[b'incomplete']
+
+			#parse list of peerss
 			
 
 		#message = read/parse response from socket 
