@@ -71,13 +71,6 @@ class Client:
 			#parse list of peers
 			peerlist = list()
 			unparsed_peers = response_dict[b'peers']
-			print(unparsed_peers)
-			print(unparsed_peers[0])
-			print(unparsed_peers[1])
-			print(unparsed_peers[2])
-			print(unparsed_peers[3])
-			print(unparsed_peers[4])
-			print(unparsed_peers[5])
 
 			#add peers to list of tuples (IP, port)
 			for x in range(len(unparsed_peers)//6):
