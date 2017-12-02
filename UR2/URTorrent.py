@@ -35,7 +35,7 @@ def main():
 	#Contact tracker and get list of peers
 
 	#Create client
-	client = Client('127.0.0.1', 9999, 'UR.mp3')
+	client = Client('127.0.0.1', 9955, 'UR.mp3')
 
 	#initiate handshaking with peers
 

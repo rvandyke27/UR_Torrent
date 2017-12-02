@@ -10,7 +10,7 @@ from collections import OrderedDict
 import json
 import re
 import socket
-
+from bitstring import BitArray
 
 
 
@@ -78,8 +78,10 @@ def main():
 			client.send_GET_request(-1)
 			client.response = client.tracker_socket.recv(1024)
 			status_line = str(client.response).split('\\r\\n')
-			print("Tracker responded: " + status_line[0][2:])
+
 			#print status line of response
+			print("Tracker responded: " + status_line[0][2:])
+
 			#print tracker info
 			client.tracker_socket.close()
 
