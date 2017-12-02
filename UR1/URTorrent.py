@@ -1,5 +1,10 @@
 import sys
+<<<<<<< HEAD
 sys.path.insert(0, '/Users/aviwebberman/Desktop/GitHub/final_project')
+=======
+up1 = os.path.abspath('..') 
+sys.path.insert(0, up1)
+>>>>>>> 289eb2ea79da926d8ed2b8dbec40d2227769c7e3
 
 import hashlib
 from client import Client
