@@ -4,7 +4,6 @@ from metainfo import Metainfo
 import math
 from bencodepy import decode_from_file, decode
 from collections import OrderedDict
-import json
 import re
 import socket
 

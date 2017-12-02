@@ -87,8 +87,7 @@ class Client:
 
 				#add peers to list of tuples (IP, port)
 				for x in range(len(unparsed_peers)//6):
-					print(x)
-					peerlist.append((unparsed_peers[x:x+4], unparsed_peers[x+4:x+6]))
+					peerlist.append((unparsed_peers[x*6:x*6+4], unparsed_peers[x*6+4:x*6+6]))
 
 				print(peerlist);
 				self.peer_list = peerlist
