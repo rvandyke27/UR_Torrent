@@ -5,6 +5,9 @@ import math
 from bencodepy import decode_from_file, decode
 from collections import OrderedDict
 import json
+import re
+import socket
+
 
 
 def main():
@@ -66,14 +69,19 @@ def main():
 			client.metainfo.print()
 		#announce
 		if(command == "announce"):
+			client.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			client.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 			client.send_GET_request(-1)
+			client.response = client.tracker_socket.recv(1024)
+			status_line = str(client.response).split('\\r\\n')
+			print(status_line[0][2:])
 			#print status line of response
 			#print tracker info
+			client.tracker_socket.close()
 
 		#trackerinfo
 		if(command == "trackerinfo"):
-			print("TODO")
-
+			print("trackerinfo")
 		#show
 
 		#status
