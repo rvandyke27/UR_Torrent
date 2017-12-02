@@ -24,7 +24,7 @@ class Client:
 		self.downloaded = 0
 		#if client has file, set left to 0 and bitfield to full
 		self.left = self.metainfo.file_length
-
+		self.bitfield = "11111111"
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 
@@ -62,24 +62,28 @@ class Client:
 			print(response_dict)
 
 			#check for failure reason
+			if b'failure reason' in response_dict:
+				print(response_dict[b'failure reason'].decode('utf-8'))
 
-			self.interval = response_dict[b'interval']
-			#self.tracker_id = response_dict[b'tracker id']
-			self.complete = response_dict[b'complete']
-			self.incomplete = response_dict[b'incomplete']
+			else:
+				self.interval = response_dict[b'interval']
+				#self.tracker_id = response_dict[b'tracker id']
+				self.complete = response_dict[b'complete']
+				self.incomplete = response_dict[b'incomplete']
 
-			#parse list of peers
-			peerlist = list()
-			unparsed_peers = response_dict[b'peers']
 
-			#add peers to list of tuples (IP, port)
-			for x in range(len(unparsed_peers)//6):
-				print(x)
-				peerlist.append((unparsed_peers[x:x+4], unparsed_peers[x+4:x+6]))
+				#parse list of peers
+				peerlist = list()
+				unparsed_peers = response_dict[b'peers']
 
-			print(peerlist);
-			self.peer_list = peerlist
-			
+				#add peers to list of tuples (IP, port)
+				for x in range(len(unparsed_peers)//6):
+					print(x)
+					peerlist.append((unparsed_peers[x:x+4], unparsed_peers[x+4:x+6]))
+
+				print(peerlist);
+				self.peer_list = peerlist
+
 	def check_for_file(self):
 		return 0
 		#if file is in local directory start running in seeder state
@@ -108,7 +112,6 @@ class Client:
 			get_request.extend(map(ord, "&event=stopped HTTP/1.1\r\n\r\n"))
 		else:
 			get_request.extend(map(ord, " HTTP/1.1\r\n\r\n"))
-		
 		print(get_request)
 
 		#send HTTP request to tracker
