@@ -1,6 +1,5 @@
 
 import urllib.parse
-#from bencoding.bencode import *
 from bencodepy import decode_from_file, decode
 import hashlib
 import connection
@@ -27,6 +26,9 @@ class Client:
 		#if client has file, set left to 0
 		self.left = self.metainfo.file_length
 
+		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
+
 		self.check_for_file()
 		self.send_GET_request(0)
 		
@@ -42,21 +44,30 @@ class Client:
 		# 	response = socket.recv(4096)
 		# 	print(response)
 
-		response = """HTTP/1.0 200 OK
-Content-Length: 27
-Content-Type: text/plain
-Pragma: no-cache
 
-d8:intervali1800e5:peers0:e"""
-		if(response[9] != '2'):
+
+		self.response = self.tracker_socket.recv(1024)
+		status = re.split(" ", str(self.response))
+		print(self.response)
+		if(status[1] != "200"):
 			print("ERROR")
 
 		else:
 			print("parse content")
-			parsed = re.split("\n\n", response) #might need to change to "\r\n" when using real response
-			#print(parsed)
-			decoded_response = decode(parsed[1].encode('utf-8'))
-		#	print(decoded_response)
+			test = b"d8:completei0e10:downloadedi0e10:incompletei1e8:intervali1869e12:min intervali934e5:peers6:'e"
+			print("test")
+			# mydata = b'd8:completei0e10:downloadedi0e10e' 
+			# my_ordred_dict = decode(mydata) 
+			# print(my_ordred_dict) 
+			# parsed = re.split(r"[\r\n]+", str(self.response)) #might need to change to "\r\n" when using real response
+			parsed = str(self.response).split("\\r\\n\\r\\n") 
+			parsed_fixed = parsed[1][:-1] + 'e'
+			print(parsed_fixed)
+			#decoded_response = decode(parsed_fixed.encode())
+			print(parsed[1])
+			print(parsed_fixed)	
+			print(decode(test))		
+			#print(decoded_response)
 
 		#message = read/parse response from socket 
 		#from tracker reply to GET request
@@ -97,13 +108,12 @@ d8:intervali1800e5:peers0:e"""
 		print(get_request)
 
 		#send HTTP request to tracker
-		tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
-		tracker_socket.send(get_request)
-		tracker_response = tracker_socket.recv(1024)
-		print(tracker_response)
 
-		return 0
+		self.tracker_socket.send(get_request)
+	#	tracker_response = self.tracker_socket.recv(1024)
+	#	print(tracker_response)
+
+		return get_request
 
 	# def send_GET_request_test(self):
 		# get_request = b"GET /announce?info_hash=_tWL%26%BD%C4%BDsEn%FD%7E1%2CJ3%40s%1B&peer_id=M3-4-2--5ffd511f4079&port=6881&key=585b8345&uploaded=0&downloaded=0&left=0&compact=1&event=started HTTP/1.1"
