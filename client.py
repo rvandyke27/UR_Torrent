@@ -26,7 +26,6 @@ class Client:
 		self.uploaded = 0
 		self.downloaded = 0
 		#if client has file, set left to 0 and bitfield to full
-		self.left = self.metainfo.file_length
 
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
