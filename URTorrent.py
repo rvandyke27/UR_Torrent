@@ -74,7 +74,7 @@ def main():
 			client.send_GET_request(-1)
 			client.response = client.tracker_socket.recv(1024)
 			status_line = str(client.response).split('\\r\\n')
-			print(status_line[0][2:])
+			print("Tracker responded: " + status_line[0][2:])
 			#print status line of response
 			#print tracker info
 			client.tracker_socket.close()
@@ -87,9 +87,12 @@ def main():
 		#status
 		if(command == "status"):
 			print("Downloaded | Uploaded | Left    | My bit field \n---------------------------------------------------")
-			print('{:11}|{:10}|{:6}|{19}'.format(client.downloaded, client.uploaded, client.left, client.bitfield))
-
-
+			#print('{:11}|{:10}|{:6}|{19}'.format(client.downloaded, client.uploaded, client.left, client.bitfield))
+			print(str(client.downloaded) + "	" + str(client.uploaded) + "	" + str(client.left) + "	" + client.bitfield)
+			#print(client.downloaded)
+			#print(client.uploaded)
+			#print(client.left)
+			#print(client.bitfield)
 	#status
 
 if __name__=="__main__":
