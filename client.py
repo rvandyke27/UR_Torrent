@@ -24,7 +24,7 @@ class Client:
 		self.downloaded = 0
 		#if client has file, set left to 0 and bitfield to full
 		self.left = self.metainfo.file_length
-
+		self.bitfield = "11111111"
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 
@@ -62,11 +62,14 @@ class Client:
 			print(response_dict)
 
 			#check for failure reason
+			if b'failure reason' in response_dict:
+				print(response_dict[b'failure reason'].decode('utf-8'))
 
-			self.interval = response_dict[b'interval']
-			self.tracker_id = response_dict[b'tracker id']
-			self.complete = response_dict[b'complete']
-			self.incomplete = response_dict[b'incomplete']
+			else:
+				self.interval = response_dict[b'interval']
+				#self.tracker_id = response_dict[b'tracker id']
+				self.complete = response_dict[b'complete']
+				self.incomplete = response_dict[b'incomplete']
 
 			#parse list of peerss
 			
@@ -106,7 +109,6 @@ class Client:
 			get_request.extend(map(ord, "&event=stopped HTTP/1.1\r\n\r\n"))
 		else:
 			get_request.extend(map(ord, " HTTP/1.1\r\n\r\n"))
-		
 		print(get_request)
 
 		#send HTTP request to tracker
