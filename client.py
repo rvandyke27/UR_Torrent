@@ -23,7 +23,7 @@ class Client:
 		self.info_hash = self.metainfo.info_hash
 		self.uploaded = 0
 		self.downloaded = 0
-		#if client has file, set left to 0
+		#if client has file, set left to 0 and bitfield to full
 		self.left = self.metainfo.file_length
 
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,13 +95,13 @@ class Client:
 		get_request.extend(bytes(str(self.downloaded), "ascii"))
 		get_request.extend(map(ord, "&left"))
 		get_request.extend(bytes(str(self.left), "ascii"))
-		get_request.extend(map(ord, "&compact=1&event="))
+		get_request.extend(map(ord, "&compact=1"))
 		if event==0:
-			get_request.extend(map(ord, "started HTTP/1.1\r\n\r\n"))
+			get_request.extend(map(ord, "&event=started HTTP/1.1\r\n\r\n"))
 		elif event==1:
-			get_request.extend(map(ord, "completed HTTP 1.1\r\n\r\n"))
+			get_request.extend(map(ord, "&event=completed HTTP 1.1\r\n\r\n"))
 		elif event==2:
-			get_request.extend(map(ord, "stopped HTTP/1.1\r\n\r\n"))
+			get_request.extend(map(ord, "&event=stopped HTTP/1.1\r\n\r\n"))
 		else:
 			get_request.extend(map(ord, " HTTP/1.1\r\n\r\n"))
 		
