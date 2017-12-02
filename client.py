@@ -7,7 +7,6 @@ import struct
 import os
 import socket
 from metainfo import Metainfo
-import socket
 import re
 
 class Client:
@@ -61,12 +60,13 @@ class Client:
 			# print(my_ordred_dict) 
 			# parsed = re.split(r"[\r\n]+", str(self.response)) #might need to change to "\r\n" when using real response
 			parsed = str(self.response).split("\\r\\n\\r\\n") 
+
 			parsed_fixed = parsed[1][:-1] + 'e'
 			print(parsed_fixed)
 			#decoded_response = decode(parsed_fixed.encode())
 			print(parsed[1])
 			print(parsed_fixed)	
-			print(decode(test))		
+		#	print(decode(test))		
 			#print(decoded_response)
 
 		#message = read/parse response from socket 
