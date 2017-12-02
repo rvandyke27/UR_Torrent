@@ -2,3 +2,4 @@ TODO
 
 -implement listening for incoming handshake messages
 -fix client --> tracker socket so that it's not hardcoded
+-port number and file name should be command line arguments for URTorrent
