@@ -1,17 +1,15 @@
+import hashlib
 import sys
+import os
 up1 = os.path.abspath('..') 
 sys.path.insert(0, up1)
-
-import hashlib
 from client import Client
 from metainfo import Metainfo
 import math
 from bencodepy import decode_from_file, decode
 from collections import OrderedDict
-import json
 import re
 import socket
-from bitstring import BitArray
 
 
 
@@ -79,10 +77,8 @@ def main():
 			client.send_GET_request(-1)
 			client.response = client.tracker_socket.recv(1024)
 			status_line = str(client.response).split('\\r\\n')
-
-			#print status line of response
 			print("Tracker responded: " + status_line[0][2:])
-
+			#print status line of response
 			#print tracker info
 			client.tracker_socket.close()
 
@@ -95,7 +91,7 @@ def main():
 		if(command == "status"):
 			print("Downloaded | Uploaded | Left    | My bit field \n---------------------------------------------------")
 			#print('{:11}|{:10}|{:6}|{19}'.format(client.downloaded, client.uploaded, client.left, client.bitfield))
-			print(str(client.downloaded) + "	" + str(client.uploaded) + "	" + str(client.left) + "	" + str(client.bitfield.bin))
+			print(str(client.downloaded) + "	" + str(client.uploaded) + "	" + str(client.left) + "	" + client.bitfield)
 			#print(client.downloaded)
 			#print(client.uploaded)
 			#print(client.left)

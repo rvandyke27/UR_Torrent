@@ -10,13 +10,14 @@ import socket
 from metainfo import Metainfo
 import re
 from bitstring import BitArray
+from connection import Connection
 
 class Client:
 
 	def __init__(self, ip_addr, port, filename):
 
 		#list of peers (and connection info) that this client is connected to
-		self.connection_list = []
+		self.connection_list = list()
 		self.metainfo = Metainfo(filename)
 		self.filename = filename
 		self.ip_addr = ip_addr
@@ -39,12 +40,9 @@ class Client:
 			self.left = self.metainfo.file_length
 		self.send_GET_request(0)
 		
-		#from metainfo file
-		# self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		# self.socket.bind((socket.gethostbyname(self.ip_addr), self.port))
-		# self.socket.listen(30) #placeholder, can listen to up to 30 peers right now
-		# self.check_for_file()
-		# self.send_GET_request_test()
+		self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.listening_socket.bind((socket.gethostbyname(self.ip_addr), self.port))
+		self.listening_socket.listen(30) #placeholder, can listen to up to 30 peers right now
 
 		# while True:
 		# 	(opentracker_socket, opentracker_addr) = self.socket.accept()
@@ -53,43 +51,24 @@ class Client:
 
 
 
-		self.response = self.tracker_socket.recv(2048)
-		status = re.split(" ", self.response.decode('utf-8'))
-		print(self.response)
+		tracker_response = self.tracker_socket.recv(2048)
+		status = re.split(" ", tracker_response.decode('utf-8'))
 		if(status[1] != "200"):
 			print("ERROR")
 
 		else:
-			print("parse content")
+			print("parsing tracker response...")
+			self.response = tracker_response
+			self.handle_tracker_response()
+
+		while True:
+			connection, address = self.listening_socket.accept()
+			buf = connection.recv(1024)
+			if len(buf) > 0:
+				print("Message received", buf)
+				break
 			
-			parsed = self.response.decode('utf-8') 
-			print(parsed)
-			split_parsed = parsed.split('\r\n\r\n')
-			print(split_parsed)
-			response_dict = decode(split_parsed[1].encode('utf-8'))
-			print(response_dict)
-
-			#check for failure reason
-			if b'failure reason' in response_dict:
-				print(response_dict[b'failure reason'].decode('utf-8'))
-
-			else:
-				self.interval = response_dict[b'interval']
-				#self.tracker_id = response_dict[b'tracker id']
-				self.complete = response_dict[b'complete']
-				self.incomplete = response_dict[b'incomplete']
-
-
-				#parse list of peers
-				peerlist = list()
-				unparsed_peers = response_dict[b'peers']
-
-				#add peers to list of tuples (IP, port)
-				for x in range(len(unparsed_peers)//6):
-					peerlist.append((unparsed_peers[x*6:x*6+4], unparsed_peers[x*6+4:x*6+6]))
-
-				print(peerlist);
-				self.peer_list = peerlist
+	
 
 	def check_for_file(self):
 		if os.path.exists(self.filename):
@@ -126,28 +105,77 @@ class Client:
 			get_request.extend(map(ord, "&event=stopped HTTP/1.1\r\n\r\n"))
 		else:
 			get_request.extend(map(ord, " HTTP/1.1\r\n\r\n"))
-		print(get_request)
+		print("GET request: ", get_request)
 
 		#send HTTP request to tracker
 
 		self.tracker_socket.send(get_request)
-	#	tracker_response = self.tracker_socket.recv(1024)
-	#	print(tracker_response)
 
 		return get_request
 
-	# def send_GET_request_test(self):
-		# get_request = b"GET /announce?info_hash=_tWL%26%BD%C4%BDsEn%FD%7E1%2CJ3%40s%1B&peer_id=M3-4-2--5ffd511f4079&port=6881&key=585b8345&uploaded=0&downloaded=0&left=0&compact=1&event=started HTTP/1.1"
+	def handle_tracker_response(self):
+		decoded_response = self.response.decode('utf-8') 
+		split_decoded = decoded_response.split('\r\n\r\n')
+		response_dict = decode(split_decoded[1].encode('utf-8'))
+		print("Tracker response: ", response_dict)
 
-		# self.socket.connect(('localhost', 6969))
-		# self.socket.send(get_request)
-		# print(get_request)
-		# tempsocket.close()
+		#check for failure reason
+		if b'failure reason' in response_dict:
+			print(response_dict[b'failure reason'].decode('utf-8'))
+
+		else:
+			self.interval = response_dict[b'interval']
+			#self.tracker_id = response_dict[b'tracker id']
+			self.complete = response_dict[b'complete']
+			self.incomplete = response_dict[b'incomplete']
+
+
+			#parse list of peers
+			peerlist = list()
+			unparsed_peers = response_dict[b'peers']
+
+			#add peers to list of tuples (IP, port)
+			for x in range(len(unparsed_peers)//6):
+				ip = socket.inet_ntoa(unparsed_peers[x*6:x*6+4])
+				port = int.from_bytes(unparsed_peers[x*6+4:x*6+6], byteorder='big')
+				#print("Reading peer ", ip, port)
+				peerlist.append((ip, port))
+
+			print(peerlist);
+			self.peer_list = peerlist
+
+			#for each peer in peer list, check if connected
+			for (IP, port) in self.peer_list:
+				print(self.ip_addr, IP, self.ip_addr != IP)
+				print(self.port, port, self.port != port)
+				if (IP != self.ip_addr) or (port != self.port):
+					for connection in self.connection_list:
+						if (IP == connection.peer_ip_addr) and (port == connection.peer_port):
+							break
+					else:
+						#if not connected, initiate handshake with peer
+						print("Connect to peer ", IP, port)
+						self.initiate_handshaking(IP, port)
+
+
+	def initiate_handshaking(self, IP, port):
+		handshake_message = self.generate_handshake_msg()
+		#create connection
+		new_connection = Connection(IP, port, BitArray(self.metainfo.num_pieces).set(False))
+
+		new_connection.sock.send(handshake_message)
+		#just try to read hello message for now
+		print(new_connection.sock.recv(1024))
+		#check received handshake
+
+		#add connection to list if it's gucci
+
+		#listen for bitfield?
 
 
 
 	def next_piece(self):
-		#find rarest missing pieces
+		#find random rarest missing pieces
 		#return index of piece
 		return 0
 
@@ -166,10 +194,9 @@ class Client:
 		handshake = bytearray(b'\x18')
 		handshake.extend(map(ord, "URTorrent protocol"))
 		handshake.extend(bytearray(8))
-		handshake.extend(metainfo.info_hash.digest())
-		handshake.extend(map(ord, peer_id))
-		print(handshake)
-		print(len(handshake))
-		return
+		handshake.extend(self.metainfo.info_hash.digest())
+		handshake.extend(self.peer_id)
+		print("Handshake message: ", handshake)
+		return handshake
 
 

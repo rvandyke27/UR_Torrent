@@ -1,0 +1,4 @@
+TODO
+
+-implement listening for incoming handshake messages
+-fix client --> tracker socket so that it's not hardcoded

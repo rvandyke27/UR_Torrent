@@ -1,4 +1,7 @@
 import hashlib
+import sys
+up1 = os.path.abspath('..') 
+sys.path.insert(0, up1)
 from client import Client
 from metainfo import Metainfo
 import math
