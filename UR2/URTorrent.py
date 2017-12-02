@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, '/Users/aviwebberman/Desktop/GitHub/final_project')
 import hashlib
 from client import Client
 from metainfo import Metainfo
@@ -7,7 +9,7 @@ from collections import OrderedDict
 import json
 import re
 import socket
-
+from bitstring import BitArray
 
 
 def main():
@@ -88,7 +90,7 @@ def main():
 		if(command == "status"):
 			print("Downloaded | Uploaded | Left    | My bit field \n---------------------------------------------------")
 			#print('{:11}|{:10}|{:6}|{19}'.format(client.downloaded, client.uploaded, client.left, client.bitfield))
-			print(str(client.downloaded) + "	" + str(client.uploaded) + "	" + str(client.left) + "	" + client.bitfield)
+			print(str(client.downloaded) + "	" + str(client.uploaded) + "	" + str(client.left) + "	" + str(client.bitfield.bin))
 			#print(client.downloaded)
 			#print(client.uploaded)
 			#print(client.left)
