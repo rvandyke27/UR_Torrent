@@ -21,11 +21,11 @@ class Metainfo:
 		for value in self.info_dict.values():
 			self.info_hash.update(bytearray(value))
 
-		self.announce = self.decoded_metainfo[b"announce"].decode('utf-8')
+		self.announce = self.decoded_metainfo[b'announce'].decode('utf-8')
 		self.filename = filename
-		self.piece_length = self.info_dict[b"piece length"]
-		self.file_length = self.info_dict[b"length"]
-		self.pieces = self.info_dict[b"pieces"]
+		self.piece_length = self.info_dict[b'piece length']
+		self.file_length = self.info_dict[b'length']
+		self.pieces = self.info_dict[b'pieces']
 
 
 	def print(self):
