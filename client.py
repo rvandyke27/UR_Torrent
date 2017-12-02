@@ -46,8 +46,8 @@ class Client:
 
 
 
-		self.response = self.tracker_socket.recv(1024)
-		status = re.split(" ", str(self.response))
+		self.response = self.tracker_socket.recv(2048)
+		status = re.split(" ", self.response.decode('utf-8'))
 		print(self.response)
 		if(status[1] != "200"):
 			print("ERROR")
@@ -55,18 +55,22 @@ class Client:
 		else:
 			print("parse content")
 			test = b"d8:completei0e10:downloadedi0e10:incompletei1e8:intervali1869e12:min intervali934e5:peers6:'e"
-			print("test")
 			# mydata = b'd8:completei0e10:downloadedi0e10e' 
 			# my_ordred_dict = decode(mydata) 
 			# print(my_ordred_dict) 
 			# parsed = re.split(r"[\r\n]+", str(self.response)) #might need to change to "\r\n" when using real response
-			parsed = str(self.response).split("\\r\\n\\r\\n") 
-			parsed_fixed = parsed[1][:-1] + 'e'
-			print(parsed_fixed)
+			parsed = self.response.decode('utf-8') 
+			print(parsed)
+			split_parsed = parsed.split('\r\n\r\n')
+			print(split_parsed)
+			response_dict = split_parsed[1];
+			print(decode(response_dict.encode('utf-8')))
+			#parsed_fixed = parsed[1][:-1] + 'e'
+			#print(parsed_fixed)
 			#decoded_response = decode(parsed_fixed.encode())
-			print(parsed[1])
-			print(parsed_fixed)	
-			print(decode(test))		
+			#print(parsed[1])
+			#print(parsed_fixed)	
+			#print(decode(test))		
 			#print(decoded_response)
 
 		#message = read/parse response from socket 
