@@ -72,6 +72,7 @@ def main():
 
 		#trackerinfo
 		if(command == "trackerinfo"):
+			print("TODO")
 
 		#show
 
