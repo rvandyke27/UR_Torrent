@@ -1,5 +1,6 @@
 import hashlib
 import sys
+import os
 up1 = os.path.abspath('..') 
 sys.path.insert(0, up1)
 from client import Client
@@ -35,7 +36,7 @@ def main():
 	#Contact tracker and get list of peers
 
 	#Create client
-	client = Client('127.0.0.1', 9999, 'UR.mp3')
+	client = Client('127.0.0.1', int(sys.argv[1]), 'UR.mp3')
 
 	#initiate handshaking with peers
 

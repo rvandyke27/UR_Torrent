@@ -25,7 +25,7 @@ class Connection(Thread):
 	#	while not self.client.bitfield.all(True):
 			#check choking/interested conditions
 			time.sleep(1)
-			self.sock.send(bytearray(map(ord, "Give me things please")))
-			print("sent stuff to ", self.sock.getsockname()[0], "over port ", self.sock.getsockname()[1])
+			self.sock.send(bytearray(map(ord, "Piece request")))
+			print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
 			response = self.sock.recv(16384)
 			print("Got reply ", response)
