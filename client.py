@@ -45,6 +45,7 @@ class Client:
 		self.send_GET_request(0)
 		
 		self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.listening_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.listening_socket.bind((socket.gethostbyname(self.ip_addr), self.port))
 		self.listening_socket.listen(5) 
 
@@ -74,27 +75,26 @@ class Client:
 			i = i + 1
 
 
-			connection_socket, address = self.listening_socket.accept()
+			peer_connection, address = self.listening_socket.accept()
 			print(i)
-			buf = connection_socket.recv(1024)
+			buf = peer_connection.recv(1024)
 			print("maybe receive stuff")
 			#if message is handshake
-			if len(buf) > 0 and "URTorrent" in str(buf):
+			print(buf[0], '\n', buf[1:19], '\n', buf[19:28], '\n', buf[28:49], '\n', self.info_hash)
+			if len(buf) > 0 and buf[0]==b'18' and buf[1:19] == b'URTorrent protocol' and buf[19:28] == b'00000000' and buf[28:49] == self.info_hash:
+			#if len(buf) > 0 and "URTorrent" in str(buf):
 				#ip = connection_socket.getsockname()[0]
 				#port = connection_socket.getsockname()[1]
 				#connection_socket.close()
-				print("Received start of handshake", buf)
-				#check if handshake is valid/good
-				
-				#connection = Connection(self, ip, port, BitArray(self.metainfo.num_pieces).set(False))
-				#connection.start()
-				connection_socket.send(self.generate_handshake_msg())
-				#connection.start()
-				#connection.sock.send(bytearray(map(ord,"HELLO")))
+				print("Received valid of handshake", buf)
+
+				peer_connection.send(self.generate_handshake_msg())
+
 				#split off thread to listen for piece requests on this socket
-			#	time.sleep(0.1)
-				listen = Listen(self)
-				listen.start()
+				peer_connection.settimeout(120)
+				threading.Thread(target = self.listen_to_peer, args = (peer_connection, address)).start()
+				#listen = Listen(self)
+				#listen.start()
 				#self.listen_list[0].start()
 
 
@@ -214,18 +214,14 @@ class Client:
 		handshake_response = new_connection.sock.recv(1024)
 		print("Received handshake response ", handshake_response)
 
-
-	#	temp_socket.close()
-		#create connection
-	#	new_connection = Connection(self, IP, port, BitArray(self.metainfo.num_pieces).set(False))
-		new_connection.start()
+		#if handshake response is valid, save connection
+		if len(handshake_response) > 0 and handshake_response[0]==b'18' and handshake_response[1:19] == b'URTorrent protocol' and handshake_response[19:28] == b'00000000' and handshake_response[28:49] == self.info_hash:
+			new_connection.peer_id = handshake_response[49:70]
+			self.connection_list.append(new_connection)
+			new_connection.start()
 		
-		# #send start of handshake
-		# new_connection.sock.send(handshake_message)
-		# print("Handshake initiated ", handshake_message)
+			#listen for bitfield?
 
-
-		#check received handshake
 
 		# new_connection, address = self.listening_socket.accept()
 		# buf = new_connection.sock.recv(1024)
@@ -234,15 +230,24 @@ class Client:
 			#check if handshake is valid/good
 			#split off thread to listen for piece requests on this socket	
 
-		#add connection to list if it's gucci
-		self.connection_list.append(new_connection)
-
 		#listen for bitfield?
 
 
 
 
-
+	def listen_to_peer(self, peer, address):
+		while True:
+			try:
+				data = peer.recv(1024)
+				if data:
+					print("received data")
+					peer.send(b'Hello')
+					time.sleep(1)
+				else:
+					print("Client Disconnected")
+			except:
+				client.close()
+				return False
 
 	def next_piece(self):
 		#find random rarest missing pieces

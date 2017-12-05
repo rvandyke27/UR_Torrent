@@ -9,6 +9,7 @@ class Connection(Thread):
 		self.client = client_leecher
 		self.peer_ip_addr = ip_addr
 		self.peer_port = port
+		self.peer_id = bytes(20)
 		self.am_choking = 1
 		self.am_interested = 0
 		self.peer_choking = 1
@@ -17,7 +18,6 @@ class Connection(Thread):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		self.sock.connect((socket.gethostbyname(self.peer_ip_addr), self.peer_port))
-	#	self.sock = sock
 		self.client.connection_list.append(self)
 
 	def run(self):
