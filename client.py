@@ -1,6 +1,7 @@
 
 import urllib.parse
 from bencodepy import decode_from_file, decode
+from listen import Listen
 import hashlib
 import connection
 import struct
@@ -11,6 +12,8 @@ from metainfo import Metainfo
 import re
 from bitstring import BitArray
 from connection import Connection
+import threading
+import time
 
 class Client:
 
@@ -18,6 +21,7 @@ class Client:
 
 		#list of peers (and connection info) that this client is connected to
 		self.connection_list = list()
+		self.listen_list = list()
 		self.metainfo = Metainfo(filename)
 		self.filename = filename
 		self.ip_addr = ip_addr
@@ -42,7 +46,7 @@ class Client:
 		
 		self.listening_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.listening_socket.bind((socket.gethostbyname(self.ip_addr), self.port))
-		self.listening_socket.listen(30) #placeholder, can listen to up to 30 peers right now
+		self.listening_socket.listen(5) 
 
 		# while True:
 		# 	(opentracker_socket, opentracker_addr) = self.socket.accept()
@@ -61,15 +65,46 @@ class Client:
 			self.response = tracker_response
 			self.handle_tracker_response()
 
+
+
+		#listen for handshakes
+		i = 0
 		while True:
-			connection, address = self.listening_socket.accept()
-			buf = connection.recv(1024)
-			if len(buf) > 0:
-				print("Message received", buf)
+
+			i = i + 1
+
+
+			connection_socket, address = self.listening_socket.accept()
+			print(i)
+			buf = connection_socket.recv(1024)
+			print("maybe receive stuff")
+			#if message is handshake
+			if len(buf) > 0 and "URTorrent" in str(buf):
+				#ip = connection_socket.getsockname()[0]
+				#port = connection_socket.getsockname()[1]
+				#connection_socket.close()
+				print("Received start of handshake", buf)
 				#check if handshake is valid/good
-				connection.send(self.generate_handshake_msg())
+				
+				#connection = Connection(self, ip, port, BitArray(self.metainfo.num_pieces).set(False))
+				#connection.start()
+				connection_socket.send(self.generate_handshake_msg())
+				#connection.start()
+				#connection.sock.send(bytearray(map(ord,"HELLO")))
 				#split off thread to listen for piece requests on this socket
-				break
+			#	time.sleep(0.1)
+				listen = Listen(self)
+				listen.start()
+				#self.listen_list[0].start()
+
+
+			#if message is request for piece
+		#	elif len(buf) > 0:
+		#		print("Got request: ", buf)
+		#		connection_socket.send(bytearray(map(ord, "HELLO FRIEND")))
+		#		print("Sent reply to ", address)
+			
+			connection_socket.close()
 			
 	
 
@@ -163,17 +198,49 @@ class Client:
 
 	def initiate_handshaking(self, IP, port):
 		handshake_message = self.generate_handshake_msg()
-		#create connection
-		new_connection = Connection(IP, port, BitArray(self.metainfo.num_pieces).set(False))
-
+	#	new_connection = Connection(self, IP, port, BitArray(self.metainfo.num_pieces).set(False))
+		# temp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		# temp_socket.connect((socket.gethostbyname(IP), port))
+		# ip = temp_socket.getsockname()[0]
+		# port = temp
+		new_connection = Connection(self, IP, port, BitArray(self.metainfo.num_pieces).set(False))
+		#send start of handshake
+	#	temp_socket.send(handshake_message)
 		new_connection.sock.send(handshake_message)
+		print("Handshake initiated ", handshake_message)
+
 		#just try to read hello message for now
-		print("Received message ", new_connection.sock.recv(1024))
+	#	handshake_response = temp_socket.recv(1024)
+		handshake_response = new_connection.sock.recv(1024)
+		print("Received handshake response ", handshake_response)
+
+
+	#	temp_socket.close()
+		#create connection
+	#	new_connection = Connection(self, IP, port, BitArray(self.metainfo.num_pieces).set(False))
+		new_connection.start()
+		
+		# #send start of handshake
+		# new_connection.sock.send(handshake_message)
+		# print("Handshake initiated ", handshake_message)
+
+
 		#check received handshake
 
+		# new_connection, address = self.listening_socket.accept()
+		# buf = new_connection.sock.recv(1024)
+		# if len(buf) > 0:
+		# 	print("Received handshake response", buf)
+			#check if handshake is valid/good
+			#split off thread to listen for piece requests on this socket	
+
 		#add connection to list if it's gucci
+		self.connection_list.append(new_connection)
 
 		#listen for bitfield?
+
+
+
 
 
 
@@ -199,7 +266,7 @@ class Client:
 		handshake.extend(bytearray(8))
 		handshake.extend(self.metainfo.info_hash.digest())
 		handshake.extend(self.peer_id)
-		print("Handshake message: ", handshake)
+		#print("Handshake message: ", handshake)
 		return handshake
 
 
