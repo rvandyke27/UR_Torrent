@@ -81,9 +81,15 @@ class Client:
 			print("maybe receive stuff")
 			#print(len(buf))
 			#if message is handshake
+<<<<<<< HEAD
+			print(buf[0], '\n', buf[1:19], '\n', buf[19:28], '\n', buf[28:49], '\n', self.info_hash)
+			#if len(buf) > 0 and buf[0]==b'18' and buf[1:19] == b'URTorrent protocol' and buf[19:28] == b'00000000' and buf[28:49] == self.info_hash:
+			if len(buf) > 0 and "URTorrent" in str(buf):
+=======
 			
 			if buf[0]==18 and buf[1:19] == b'URTorrent protocol' and buf[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and buf[27:47] == self.info_hash.digest():
 			#if len(buf) > 0 and "URTorrent" in str(buf):
+>>>>>>> 504fca1fec10b7a9a3728b0d7198ad1d634f28d4
 				#ip = connection_socket.getsockname()[0]
 				#port = connection_socket.getsockname()[1]
 				#connection_socket.close()
@@ -105,7 +111,7 @@ class Client:
 		#		connection_socket.send(bytearray(map(ord, "HELLO FRIEND")))
 		#		print("Sent reply to ", address)
 			
-			peer_connection.close()
+	#		peer_connection.close()
 			
 	
 
@@ -215,12 +221,20 @@ class Client:
 		handshake_response = new_connection.sock.recv(1024)
 
 		#if handshake response is valid, save connection
+<<<<<<< HEAD
+	#	if len(handshake_response) > 0 and handshake_response[0]==b'18' and handshake_response[1:19] == b'URTorrent protocol' and handshake_response[19:28] == b'00000000' and handshake_response[28:49] == self.info_hash:
+		new_connection.peer_id = handshake_response[49:70]
+		self.connection_list.append(new_connection)
+		new_connection.start()
+	
+=======
 		if handshake_response[0]==18 and handshake_response[1:19] == b'URTorrent protocol' and handshake_response[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and handshake_response[27:47] == self.info_hash.digest():			
 			new_connection.peer_id = handshake_response[47:68]
 			print("Received valid handshake response ", handshake_response)
 			self.connection_list.append(new_connection)
 			new_connection.start()
 		
+>>>>>>> 504fca1fec10b7a9a3728b0d7198ad1d634f28d4
 			#listen for bitfield?
 
 
