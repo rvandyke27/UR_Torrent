@@ -104,7 +104,7 @@ class Client:
 		#		connection_socket.send(bytearray(map(ord, "HELLO FRIEND")))
 		#		print("Sent reply to ", address)
 			
-			connection_socket.close()
+			peer_connection.close()
 			
 	
 
