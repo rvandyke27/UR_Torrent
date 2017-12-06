@@ -3,11 +3,11 @@ from threading import Thread
 import time
 import struct
 import atexit
-<<<<<<< HEAD
+
 from bitstring import BitArray
-=======
+
 import hashlib
->>>>>>> f573f8bd7244872962fce8b694120beea213af0a
+
 
 class Connection(Thread):
 
@@ -29,42 +29,25 @@ class Connection(Thread):
 		self.client.connection_list.append(self)
 
 	def run(self):
+		
 		while True:
-	#	while not self.client.bitfield.all(True):
-			#check choking/interested conditions
-<<<<<<< HEAD
-
-			time.sleep(1)
+	#   while not self.client.bitfield.all(True):
+			#check choking/interested condition
 
 
-			
-
-			try:
-
-
-				self.sock.send(bytearray(map(ord, "Piece request")))
-				print(threading.activeCount())
-
-=======
 			time.sleep(.1)
 			for i in range(self.client.metainfo.num_pieces):
 				print(i)
->>>>>>> f573f8bd7244872962fce8b694120beea213af0a
 				piece_request = bytearray(14)
 				piece_request[0:4] = struct.pack('>i', int(13))
 				piece_request[4] = 6
 				piece_request[5:9] = struct.pack('>i', int(i))
 				piece_request[9:13] = struct.pack('>i', int(0))
-<<<<<<< HEAD
-				#hardcode length for now
-				piece_request[13:17] = struct.pack('>i', int(65536))
-				print("Sending piece request: ", piece_request)
-				self.sock.send(piece_request)
 
-				print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
-				message = self.sock.recv(16384)
-				print("Got reply ", message)
-=======
+				#hardcode length for now
+
+
+
 				if i < self.client.metainfo.num_pieces-1:
 					piece_request[13:17] = struct.pack('>i', int(self.client.metainfo.piece_length))
 				else:
@@ -79,7 +62,7 @@ class Connection(Thread):
 					print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
 					message = self.sock.recv(65549)
 					print("Got reply ")
->>>>>>> f573f8bd7244872962fce8b694120beea213af0a
+
 
 					#check messsage type
 					message_prefix = message[0:4]

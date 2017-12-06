@@ -17,17 +17,10 @@ import codecs
 import atexit
 import pickle
 from threading import Thread
-<<<<<<< HEAD
-
 import struct
 
 class Client:
 
-=======
-import struct
-
-class Client:
->>>>>>> f573f8bd7244872962fce8b694120beea213af0a
 
 	def __init__(self, ip_addr, port, filename):
 
@@ -89,17 +82,7 @@ class Client:
 		thread.daemon = True
 		thread.start()
 
-		print(threading.activeCount())
 
-<<<<<<< HEAD
-
-
-
-
-
-
-=======
->>>>>>> f573f8bd7244872962fce8b694120beea213af0a
 
 			#if message is request for piece
 		#	elif len(buf) > 0:
