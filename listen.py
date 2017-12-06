@@ -12,12 +12,20 @@ class Listen(Thread):
 	def run(self):
 
 		while True:
+			try:
+				conn, address = self.client.listening_socket.accept()
+				buf = conn.recv(1024)
+				print(buf)
+				if len(buf) > 0:
+					
+					conn.send((bytearray(map(ord, "HERE IS YOUR PIECE"))))
 
-			conn, address = self.client.listening_socket.accept()
-			buf = conn.recv(1024)
-			print(buf)
-			if len(buf) > 0:
-				
-				conn.send((bytearray(map(ord, "HERE IS YOUR PIECE"))))
+			except Exception as exc: 
+				print(str(exc))
+				conn.close()
+				break
 
-			conn.close()
+			except KeyboardInterrupt:
+				print("closing")
+				conn.close()
+				break

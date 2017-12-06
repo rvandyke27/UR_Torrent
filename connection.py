@@ -1,11 +1,13 @@
 import socket
 from threading import Thread
 import time
+import atexit
 
 class Connection(Thread):
 
 	def __init__(self, client_leecher, ip_addr, port, peer_bitfield):
 		Thread.__init__(self)
+		atexit.register(self.exit_handler)
 		self.client = client_leecher
 		self.peer_ip_addr = ip_addr
 		self.peer_port = port
@@ -25,7 +27,23 @@ class Connection(Thread):
 	#	while not self.client.bitfield.all(True):
 			#check choking/interested conditions
 			time.sleep(1)
-			self.sock.send(bytearray(map(ord, "Piece request")))
-			print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
-			response = self.sock.recv(16384)
-			print("Got reply ", response)
+			try:
+
+				self.sock.send(bytearray(map(ord, "Piece request")))
+				print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
+				response = self.sock.recv(16384)
+				print("Got reply ", response)
+
+			except Exception as exc: 
+				print(str(exc))
+				self.sock.close()
+				break
+
+			except KeyboardInterrupt:
+				print("closing")
+				self.sock.close()
+				break
+
+	def exit_handler(self):
+		print("Connection closing")
+		self.sock.close()
