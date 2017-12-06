@@ -17,11 +17,17 @@ import codecs
 import atexit
 import pickle
 from threading import Thread
+<<<<<<< HEAD
 
 import struct
 
 class Client:
 
+=======
+import struct
+
+class Client:
+>>>>>>> f573f8bd7244872962fce8b694120beea213af0a
 
 	def __init__(self, ip_addr, port, filename):
 
@@ -85,12 +91,15 @@ class Client:
 
 		print(threading.activeCount())
 
+<<<<<<< HEAD
 
 
 
 
 
 
+=======
+>>>>>>> f573f8bd7244872962fce8b694120beea213af0a
 
 			#if message is request for piece
 		#	elif len(buf) > 0:
@@ -112,10 +121,17 @@ class Client:
 			f = open(self.filename, "rb")
 			for i in range(self.metainfo.num_pieces-1):
 				temp_filename = "temp-" + str(i) + self.filename
-				fout = open(temp_filename, 'w+b')
-				b = f.read(65536)
+				fout = open(temp_filename, 'wb')
+				b = bytearray()
+				b = f.read(self.metainfo.piece_length)
 				if(b):
 					fout.write(b)
+				piece_hash = hashlib.sha1()
+				piece_hash.update(b)
+				#print(i)
+				#print(piece_hash.hexdigest())
+				#print(self.metainfo.get_piece_hash(i))
+
 
 			temp_filename = "temp-" + str(self.metainfo.num_pieces-1) + self.filename
 			fout = open(temp_filename, 'w+b')
