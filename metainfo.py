@@ -40,3 +40,7 @@ class Metainfo:
 		print("pieces' hashes:  ")
 		for i in range(0, self.num_pieces):
 			print(str(i) + " " + self.info_dict[b"pieces"][i:i+20+1].hex())
+
+	def get_piece_hash(self, index):
+		return self.info_dict[b'pieces'][index:index+21].hex()
+

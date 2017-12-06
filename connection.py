@@ -3,6 +3,7 @@ from threading import Thread
 import time
 import struct
 import atexit
+import hashlib
 
 class Connection(Thread):
 
@@ -27,30 +28,58 @@ class Connection(Thread):
 		while True:
 	#	while not self.client.bitfield.all(True):
 			#check choking/interested conditions
-			time.sleep(1)
-
-
-			
-
-			try:
+			time.sleep(.1)
+			for i in range(self.client.metainfo.num_pieces):
+				print(i)
 				piece_request = bytearray(14)
 				piece_request[0:4] = struct.pack('>i', int(13))
 				piece_request[4] = 6
-				piece_request[5:9] = struct.pack('>i', int(0))
+				piece_request[5:9] = struct.pack('>i', int(i))
 				piece_request[9:13] = struct.pack('>i', int(0))
-				#hardcode length for now
-				piece_request[13:17] = struct.pack('>i', int(65536))
-				print("Sending piece request: ", piece_request)
-				self.sock.send(piece_request)
-				print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
-				message = self.sock.recv(16384)
-				print("Got reply ", message)
+				if i < self.client.metainfo.num_pieces-1:
+					piece_request[13:17] = struct.pack('>i', int(self.client.metainfo.piece_length))
+				else:
+					print("Last Piece")
+					file_size = self.client.metainfo.file_length
+					last_piece_size = file_size % self.client.metainfo.num_pieces
+					print(last_piece_size)
+					piece_request[13:17] = struct.pack('>i', int(last_piece_size))
+				try:
+					print("Sending piece request: ", piece_request)
+					self.sock.send(piece_request)
+					print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
+					message = self.sock.recv(65549)
+					print("Got reply ")
 
-				#check messsage type
-				message_prefix = message[0:4]
-				message_id = message[4]
-				if message_prefix == 1:
-					if message_id == 0:
+					#check messsage type
+					message_prefix = message[0:4]
+					message_id = message[4]
+					#default block size = piece size = 65536
+					if message_id == 7:
+						print("Piece Message Received")
+						#piece message
+						index = message[5:9]
+						begin = message[9:13]
+						piece = message[13:]
+						#check info hash
+						int_index = int.from_bytes(index, byteorder='big')
+						print(int_index)
+						piece_hash = hashlib.sha1(piece).hexdigest()
+						print(piece_hash)
+						print(self.client.metainfo.get_piece_hash(int_index))
+						if (piece_hash == self.client.metainfo.get_piece_hash(int_index)):
+							#save piece
+							temp_filename = "temp-" + str(int.from_bytes(index, byteorder='big')) + self.client.filename
+							print(temp_filename)
+							fout = open(temp_filename, 'w+b')
+							if(piece):
+								fout.write(piece)
+								#update bitfield
+							fout.close()
+							self.client.downloaded+=1
+						else:
+							print("Invalid Piece")
+					elif message_id == 0:
 						#choke
 						self.peer_choking == 1
 					elif message_id == 1:
@@ -60,50 +89,40 @@ class Connection(Thread):
 						self.peer_interested == 1
 					elif message_id == 3:
 						self.peer_interested = 0
-					else:
-						print("Invalid Message")
-				elif message_prefix == 5:
-					#have message
-					print("Have Message")
-				elif message_prefix == 1 + len(self.peer_bitfield):
-					if message_id == 5:
+					elif message_id == 4:
+						#have message
+						print("Have Message")
+					elif message_id == 5 :
 						#bitfield message
 						#check that bitfield is correct length
 						self.peer_bitfield = message[5:6+len(self.peer_bitfield)]
 						print(self.peer_bitfield)
-				elif message_prefix == 13:
-					index = message[5:9]
-					begin = message[9:13]
-					length = message[13:17]
-					if message_id == 6:
+					elif message_id == 6:
+						index = message[5:9]
+						begin = message[9:13]
+						length = message[13:17]
 						#request message
 						print("Request Message")
 					elif message_id == 8:
 						#cancel message
 						print("Cancel Message")
-					else:
-						print("Invalid Message")
-				#default block size = piece size = 65536
-				elif message_prefix == 9 + 65536:
-					if message_id == 7:
-						#piece message
 						index = message[5:9]
 						begin = message[9:13]
-						piece = message[13:65536+13]
-						#save piece
+						length = message[13:17]
 					else:
 						print("Invalid Message")
-				else:
-					print("Invalid Message")
 
-			except Exception as exc: 
-				print(str(exc))
-				self.sock.close()
-				break
+				except Exception as exc: 
+					print(str(exc))
+					self.sock.close()
+					break
 
-			except KeyboardInterrupt:
-				print("closing")
-				self.sock.close()
+				except KeyboardInterrupt:
+					print("closing")
+					self.sock.close()
+					break
+			else:
+				self.client.reassemble_file()
 				break
 
 	def exit_handler(self):
