@@ -20,7 +20,7 @@ import pickle
 class Client:
 
 	def __init__(self, ip_addr, port, filename):
-
+		print("thing")
 		atexit.register(self.exit_handler)
 
 		#list of peers (and connection info) that this client is connected to
@@ -173,7 +173,7 @@ class Client:
 		print("Raw Response: ", self.response)
 		#decoded_response = self.response.decode('utf-8') 
 		#print("Decoded Response: ", decoded_response)
-		split_decoded = response.split(b'\r\n\r\n')
+		split_decoded = self.response.split(b'\r\n\r\n')
 		response_dict = decode(split_decoded[1])
 		print("Tracker response: ", response_dict)
 
@@ -344,9 +344,15 @@ class Client:
 		#print("Handshake message: ", handshake)
 		return handshake
 
-      
+	def exit_handler(self):
+		self.send_GET_request(2)
+		print("Client closing")
+		self.tracker_socket.close()
+		self.listening_socket.close()
+		print("Quitting...")
 
-    def exit_handler(self):
-        print("Client closing")
-        self.tracker_socket.close()
-        self.listening_socket.close()
+
+
+
+
+
