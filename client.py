@@ -15,12 +15,14 @@ import threading
 import time
 import codecs
 import atexit
+import pickle
+from threading import Thread
 import struct
 
 class Client:
 
 	def __init__(self, ip_addr, port, filename):
-		print("thing")
+
 		atexit.register(self.exit_handler)
 
 		#list of peers (and connection info) that this client is connected to
@@ -40,6 +42,7 @@ class Client:
 		self.tracker_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 		self.bitfield = BitArray(self.metainfo.num_pieces)
+
 		if(self.check_for_file()):
 			self.bitfield.set(True)
 			self.left = 0		
@@ -74,41 +77,11 @@ class Client:
 
 
 
-		#listen for handshakes
-		i = 0
-		while True:
+		thread = threading.Thread(target = self.listen_for_handshake)
+		thread.daemon = True
+		thread.start()
 
-			i = i + 1
-
-			try:
-				peer_connection, address = self.listening_socket.accept()
-				print(i)
-				buf = peer_connection.recv(1024)
-				print("maybe receive stuff")
-				#print(len(buf))
-				#if message is handshake
-				
-				if buf[0]==18 and buf[1:19] == b'URTorrent protocol' and buf[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and buf[27:47] == self.info_hash.digest():
-		
-					print("Received valid handshake", buf)
-
-					peer_connection.send(self.generate_handshake_msg())
-
-					#split off thread to listen for piece requests on this socket
-					peer_connection.settimeout(120)
-					threading.Thread(target = self.listen_to_peer, args = (peer_connection, address)).start()
-					#listen = Listen(self)
-					#listen.start()
-					#self.listen_list[0].start()
-
-			except Exception as exc:
-				print(str(exc))
-				peer_connection.close()
-				break
-			except KeyboardInterrupt:
-				print("Closing")
-				peer_connection.close()
-				break
+		print(threading.activeCount())
 
 
 			#if message is request for piece
@@ -131,10 +104,17 @@ class Client:
 			f = open(self.filename, "rb")
 			for i in range(self.metainfo.num_pieces-1):
 				temp_filename = "temp-" + str(i) + self.filename
-				fout = open(temp_filename, 'w+b')
-				b = f.read(65536)
+				fout = open(temp_filename, 'wb')
+				b = bytearray()
+				b = f.read(self.metainfo.piece_length)
 				if(b):
 					fout.write(b)
+				piece_hash = hashlib.sha1()
+				piece_hash.update(b)
+				#print(i)
+				#print(piece_hash.hexdigest())
+				#print(self.metainfo.get_piece_hash(i))
+
 
 			temp_filename = "temp-" + str(self.metainfo.num_pieces-1) + self.filename
 			fout = open(temp_filename, 'w+b')
@@ -230,7 +210,12 @@ class Client:
 					else:
 						#if not connected, initiate handshake with peer
 						print("Connect to peer ", IP, port)
-						self.initiate_handshaking(IP, port)
+						handshake_thread = threading.Thread(target = self.initiate_handshaking, args = (IP, port))
+						handshake_thread.daemon = True
+						handshake_thread.start()
+						print(threading.activeCount())
+						handshake_thread.join()
+						#self.initiate_handshaking(IP, port)
 
 
 	def initiate_handshaking(self, IP, port):
@@ -246,7 +231,11 @@ class Client:
 			new_connection.peer_id = handshake_response[47:68]
 			print("Received valid handshake response ", handshake_response)
 			self.connection_list.append(new_connection)
+
 			new_connection.start()
+			print(threading.activeCount())
+			#new_connection.join()
+
 
 			#listen for bitfield?
 
@@ -395,6 +384,51 @@ class Client:
 
 
 
+	def listen_for_handshake(self):
 
+		#listen for handshakes
+		i = 0
+		while True:
 
+			i = i + 1
+
+			try:
+				peer_connection, address = self.listening_socket.accept()
+				print(i)
+				buf = peer_connection.recv(1024)
+				print("maybe receive stuff")
+				#print(len(buf))
+				#if message is handshake
+				
+				if buf[0]==18 and buf[1:19] == b'URTorrent protocol' and buf[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and buf[27:47] == self.info_hash.digest():
+				#if len(buf) > 0 and "URTorrent" in str(buf):
+					#ip = connection_socket.getsockname()[0]
+					#port = connection_socket.getsockname()[1]
+					#connection_socket.close()
+					print("Received valid handshake", buf)
+
+					peer_connection.send(self.generate_handshake_msg())
+
+					#split off thread to listen for piece requests on this socket
+					peer_connection.settimeout(120)
+					listen_thread = threading.Thread(target = self.listen_to_peer, args = (peer_connection, address))
+					listen_thread.daemon = True
+					print("Before Listening Thread: ", threading.activeCount())
+					listen_thread.start()
+					print("After Listening Thread: ", threading.activeCount())
+					listen_thread.join()
+					#listen = Listen(self)
+					#listen.start()
+					#self.listen_list[0].start()
+
+			except Exception as exc:
+				print(str(exc))
+				peer_connection.close()
+				break
+			except KeyboardInterrupt:
+				print("Closing")
+				peer_connection.close()
+				break
+
+	
 

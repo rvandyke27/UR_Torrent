@@ -39,8 +39,8 @@ class Metainfo:
 		print("announce URL:  " + str(self.decoded_metainfo[b"announce"])[1:])
 		print("pieces' hashes:  ")
 		for i in range(0, self.num_pieces):
-			print(str(i) + " " + self.info_dict[b"pieces"][i:i+20+1].hex())
+			print(str(i) + " " + self.info_dict[b"pieces"][i*20:i*20+20].hex())
 
 	def get_piece_hash(self, index):
-		return self.info_dict[b'pieces'][index:index+21].hex()
+		return self.info_dict[b'pieces'][index*20:index*20+20].hex()
 

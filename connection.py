@@ -68,6 +68,7 @@ class Connection(Thread):
 						print(piece_hash)
 						print(self.client.metainfo.get_piece_hash(int_index))
 						if (piece_hash == self.client.metainfo.get_piece_hash(int_index)):
+							print("Piece hash verified")
 							#save piece
 							temp_filename = "temp-" + str(int.from_bytes(index, byteorder='big')) + self.client.filename
 							print(temp_filename)
