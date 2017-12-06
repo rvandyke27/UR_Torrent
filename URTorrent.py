@@ -9,7 +9,6 @@ from bencodepy import decode_from_file, decode
 from collections import OrderedDict
 import re
 import socket
-import atexit
 
 
 
@@ -25,6 +24,15 @@ def main():
 	# for key in info_dict.keys():
 	# 	info_hash.update(key)
 
+	# for value in info_dict.values():
+	# 	info_hash.update(bytearray(value))
+
+
+	# print(info_hash.hexdigest())
+
+	#Determine if leecher or seeder
+
+	#Contact tracker and get list of peers
 
 	#Create client
 	client = Client('127.0.0.1', 9999, 'UR.mp3')
@@ -37,6 +45,22 @@ def main():
 		#use status info to determine whether a chunk should be downloaded or uploaded
 		#rarest first with randomization
 
+	#message flow
+		#choke, unchoke, interested, not interested
+
+		#have
+
+		#bitfield
+			#sent after handshaking before any other messages
+			#client should drop connection if bitfield is wrong length
+
+		#request
+
+		#piece
+
+		#cancel (can be ignored)
+
+	#implement commands
 
 	while True:
 		command = input("URTorrent>")
@@ -47,15 +71,15 @@ def main():
 			client.metainfo.print()
 		#announce
 		if(command == "announce"):
-			client.tracker_socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			client.tracker_socket2.connect((socket.gethostbyname('localhost'), 6969))
+			client.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			client.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 			client.send_GET_request(-1)
-			client.response = client.tracker_socket2.recv(1024)
+			client.response = client.tracker_socket.recv(1024)
 			status_line = str(client.response).split('\\r\\n')
 			print("Tracker responded: " + status_line[0][2:])
 			#print status line of response
 			#print tracker info
-			client.tracker_socket2.close()
+			client.tracker_socket.close()
 
 		#trackerinfo
 		if(command == "trackerinfo"):
@@ -75,10 +99,3 @@ def main():
 
 if __name__=="__main__":
 	main()
-
-def exit_handler():
-	print("Quitting...")
-	client.send_GET_request(2)
-	
-
-atexit.register(exit_handler)

@@ -1,5 +1,6 @@
 import socket
 from threading import Thread
+import threading
 import time
 import atexit
 
@@ -18,7 +19,9 @@ class Connection(Thread):
 		self.peer_interested = 0
 		self.peer_bitfield = peer_bitfield
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+		#thread = threading.Thread(target=self.run, args=())
+		#thread.daemon = True  
+		self.daemon = True
 		self.sock.connect((socket.gethostbyname(self.peer_ip_addr), self.peer_port))
 		self.client.connection_list.append(self)
 
@@ -26,6 +29,7 @@ class Connection(Thread):
 		while True:
 	#	while not self.client.bitfield.all(True):
 			#check choking/interested conditions
+
 			time.sleep(1)
 
 
@@ -34,6 +38,7 @@ class Connection(Thread):
 			try:
 
 				self.sock.send(bytearray(map(ord, "Piece request")))
+				print(threading.activeCount())
 				print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
 				message = self.sock.recv(16384)
 				print("Got reply ", message)
@@ -97,6 +102,8 @@ class Connection(Thread):
 				print("closing")
 				self.sock.close()
 				break
+
+
 
 	def exit_handler(self):
 		print("Connection closing")
