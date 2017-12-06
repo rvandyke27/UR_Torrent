@@ -15,7 +15,7 @@ import threading
 import time
 import codecs
 import atexit
-import pickle
+import struct
 
 class Client:
 
@@ -129,6 +129,25 @@ class Client:
 			print("FILE EXISTS")
 			#piece length 65536
 			#file size 4641991
+
+			#split file into temporary chunks
+			f = open(self.filename, "rb")
+			for i in range(self.metainfo.num_pieces-2):
+				temp_filename = "temp-" + str(i) + self.filename
+				fout = open(temp_filename, 'w+b')
+				b = f.read(65536)
+				if(b):
+					fout.write(b)
+
+			temp_filename = "temp-" + str(self.metainfo.num_pieces-1) + self.filename
+			fout = open(temp_filename, 'w+b')
+			while True:
+				b = f.read(1)
+				if(b):
+					fout.write(b)
+				else:
+					break
+
 			return True
 
 		else:
@@ -254,9 +273,6 @@ class Client:
 
 		#listen for bitfield?
 
-
-
-
 	def listen_to_peer(self, peer, address):
 		while True:
 			try:
@@ -264,8 +280,12 @@ class Client:
 				if message:
 					print("received message")
 					#check messsage type
-					message_prefix = message[0:4]
+					message_prefix = struct.unpack('>i', message[0:4])[0]
+					print("Message Prefix = ", message_prefix)
+					print(message_prefix==13)
 					message_id = message[4]
+					print("Message ID = ", message_id)
+					print(message_id == 6)
 					if message_prefix == 1:
 						if message_id == 0:
 							#choke
@@ -289,12 +309,36 @@ class Client:
 							self.peer_bitfield = message[5:6+len(self.peer_bitfield)]
 							print(self.peer_bitfield)
 					elif message_prefix == 13:
+						print("Request message received")
 						index = message[5:9]
 						begin = message[9:13]
 						length = message[13:17]
 						if message_id == 6:
 							#request message
-							print("Request message")
+							#check that peer is not choked
+							#send requested chunk
+							length_prefix = 9 + 65536
+							piece_payload = bytearray(b'\x07')
+							piece_payload.extend(index)
+							piece_payload.extend(begin)
+							filename = "temp-" + str(int.from_bytes(index, byteorder='big')) + self.metainfo.filename
+							f = open(filename, 'rb')
+							b = bytearray()
+							b = f.read(65536)
+							if not b:
+								while True:
+									k = f.read(1)
+									if k:
+										b.extend(k)
+									else:
+										break
+
+							piece_payload.extend(b)
+							piece_message = bytearray(struct.pack('>i',len(piece_payload)))
+							piece_message.extend(piece_payload)
+							print("Piece Message: ", piece_message)
+							peer.send(piece_message)
+					
 						elif message_id == 8:
 							#cancel message
 							print("Cancel Message")
@@ -315,8 +359,10 @@ class Client:
 
 					time.sleep(1)
 				else:
-					print("Client Disconnected")
+					print("No data received")
+					time.sleep(1)
 			except:
+				print("Except")
 				return False
 
 	def next_piece(self):
@@ -349,6 +395,10 @@ class Client:
 		print("Client closing")
 		self.tracker_socket.close()
 		self.listening_socket.close()
+		print("Cleaning up temporary files")
+		for fl in os.listdir():
+			if "temp" in fl:
+				os.remove(fl)
 		print("Quitting...")
 
 

@@ -1,6 +1,7 @@
 import socket
 from threading import Thread
 import time
+import struct
 import atexit
 
 class Connection(Thread):
@@ -32,8 +33,15 @@ class Connection(Thread):
 			
 
 			try:
-
-				self.sock.send(bytearray(map(ord, "Piece request")))
+				piece_request = bytearray(14)
+				piece_request[0:4] = struct.pack('>i', int(13))
+				piece_request[4] = 6
+				piece_request[5:9] = struct.pack('>i', int(0))
+				piece_request[9:13] = struct.pack('>i', int(0))
+				#hardcode length for now
+				piece_request[13:17] = struct.pack('>i', int(65536))
+				print("Sending piece request: ", piece_request)
+				self.sock.send(piece_request)
 				print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
 				message = self.sock.recv(16384)
 				print("Got reply ", message)
