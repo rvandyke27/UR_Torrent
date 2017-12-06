@@ -1,4 +1,3 @@
-
 import urllib.parse
 from bencodepy import decode_from_file, decode
 from listen import Listen
@@ -14,11 +13,15 @@ from bitstring import BitArray
 from connection import Connection
 import threading
 import time
+import codecs
+import atexit
 import pickle
 
 class Client:
 
 	def __init__(self, ip_addr, port, filename):
+
+		atexit.register(self.exit_handler)
 
 		#list of peers (and connection info) that this client is connected to
 		self.connection_list = list()
@@ -34,6 +37,7 @@ class Client:
 		#if client has file, set left to 0 and bitfield to full
 
 		self.tracker_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.tracker_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.tracker_socket.connect((socket.gethostbyname('localhost'), 6969))
 		self.bitfield = BitArray(self.metainfo.num_pieces)
 		if(self.check_for_file()):
@@ -57,9 +61,9 @@ class Client:
 
 
 
-		tracker_response = self.tracker_socket.recv(2048)
-		print(tracker_response)
-		status = re.split(" ", tracker_response.decode('utf-8'))
+		tracker_response = self.tracker_socket.recv(1024)
+		print("Response: ", tracker_response)
+		status = re.split(" ", str(tracker_response)[2:-1])
 		if(status[1] != "200"):
 			print("ERROR")
 
@@ -76,29 +80,38 @@ class Client:
 
 			i = i + 1
 
+			try:
+				peer_connection, address = self.listening_socket.accept()
+				print(i)
+				buf = peer_connection.recv(1024)
+				print("maybe receive stuff")
+				#print(len(buf))
+				#if message is handshake
+				
+				if buf[0]==18 and buf[1:19] == b'URTorrent protocol' and buf[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and buf[27:47] == self.info_hash.digest():
+				#if len(buf) > 0 and "URTorrent" in str(buf):
+					#ip = connection_socket.getsockname()[0]
+					#port = connection_socket.getsockname()[1]
+					#connection_socket.close()
+					print("Received valid handshake", buf)
 
-			peer_connection, address = self.listening_socket.accept()
-			print(i)
-			buf = peer_connection.recv(1024)
-			print("maybe receive stuff")
-			#print(len(buf))
-			#if message is handshake
-			
-			if buf[0]==18 and buf[1:19] == b'URTorrent protocol' and buf[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and buf[27:47] == self.info_hash.digest():
-			#if len(buf) > 0 and "URTorrent" in str(buf):
-				#ip = connection_socket.getsockname()[0]
-				#port = connection_socket.getsockname()[1]
-				#connection_socket.close()
-				print("Received valid handshake", buf)
+					peer_connection.send(self.generate_handshake_msg())
 
-				peer_connection.send(self.generate_handshake_msg())
+					#split off thread to listen for piece requests on this socket
+					peer_connection.settimeout(120)
+					threading.Thread(target = self.listen_to_peer, args = (peer_connection, address)).start()
+					#listen = Listen(self)
+					#listen.start()
+					#self.listen_list[0].start()
 
-				#split off thread to listen for piece requests on this socket
-				peer_connection.settimeout(120)
-				threading.Thread(target = self.listen_to_peer, args = (peer_connection, address)).start()
-				#listen = Listen(self)
-				#listen.start()
-				#self.listen_list[0].start()
+			except Exception as exc:
+				print(str(exc))
+				peer_connection.close()
+				break
+			except KeyboardInterrupt:
+				print("Closing")
+				peer_connection.close()
+				break
 
 
 			#if message is request for piece
@@ -158,10 +171,10 @@ class Client:
 
 	def handle_tracker_response(self):
 		print("Raw Response: ", self.response)
-		decoded_response = self.response.decode('utf-8') 
-		print("Decoded Response: ", decoded_response)
-		split_decoded = decoded_response.split('\r\n\r\n')
-		response_dict = decode(split_decoded[1].encode('utf-8'))
+		#decoded_response = self.response.decode('utf-8') 
+		#print("Decoded Response: ", decoded_response)
+		split_decoded = response.split(b'\r\n\r\n')
+		response_dict = decode(split_decoded[1])
 		print("Tracker response: ", response_dict)
 
 		#check for failure reason
@@ -331,4 +344,9 @@ class Client:
 		#print("Handshake message: ", handshake)
 		return handshake
 
+      
 
+    def exit_handler(self):
+        print("Client closing")
+        self.tracker_socket.close()
+        self.listening_socket.close()
