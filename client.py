@@ -15,15 +15,13 @@ import threading
 import time
 import codecs
 import atexit
-<<<<<<< HEAD
 import pickle
 from threading import Thread
-class Client():
-=======
+
 import struct
 
 class Client:
->>>>>>> 5475e1c9e2eae5ec8290d57afdbdb1558637dbcc
+
 
 	def __init__(self, ip_addr, port, filename):
 
@@ -87,38 +85,11 @@ class Client:
 
 		print(threading.activeCount())
 
-<<<<<<< HEAD
-=======
-			try:
-				peer_connection, address = self.listening_socket.accept()
-				print(i)
-				buf = peer_connection.recv(1024)
-				print("maybe receive stuff")
-				#print(len(buf))
-				#if message is handshake
-				
-				if buf[0]==18 and buf[1:19] == b'URTorrent protocol' and buf[19:27] == b'\x00\x00\x00\x00\x00\x00\x00\x00' and buf[27:47] == self.info_hash.digest():
-		
-					print("Received valid handshake", buf)
 
-					peer_connection.send(self.generate_handshake_msg())
 
-					#split off thread to listen for piece requests on this socket
-					peer_connection.settimeout(120)
-					threading.Thread(target = self.listen_to_peer, args = (peer_connection, address)).start()
-					#listen = Listen(self)
-					#listen.start()
-					#self.listen_list[0].start()
 
-			except Exception as exc:
-				print(str(exc))
-				peer_connection.close()
-				break
-			except KeyboardInterrupt:
-				print("Closing")
-				peer_connection.close()
-				break
->>>>>>> 5475e1c9e2eae5ec8290d57afdbdb1558637dbcc
+
+
 
 
 			#if message is request for piece
@@ -446,7 +417,7 @@ class Client:
 					print("Before Listening Thread: ", threading.activeCount())
 					listen_thread.start()
 					print("After Listening Thread: ", threading.activeCount())
-					listen_thread.join()
+				#	listen_thread.join()
 					#listen = Listen(self)
 					#listen.start()
 					#self.listen_list[0].start()
