@@ -14,6 +14,7 @@ from bitstring import BitArray
 from connection import Connection
 import threading
 import time
+import pickle
 
 class Client:
 
@@ -57,6 +58,7 @@ class Client:
 
 
 		tracker_response = self.tracker_socket.recv(2048)
+		print(tracker_response)
 		status = re.split(" ", tracker_response.decode('utf-8'))
 		if(status[1] != "200"):
 			print("ERROR")
@@ -87,7 +89,7 @@ class Client:
 				#ip = connection_socket.getsockname()[0]
 				#port = connection_socket.getsockname()[1]
 				#connection_socket.close()
-				print("Received valid of handshake", buf)
+				print("Received valid handshake", buf)
 
 				peer_connection.send(self.generate_handshake_msg())
 
@@ -112,6 +114,8 @@ class Client:
 	def check_for_file(self):
 		if os.path.exists(self.filename):
 			print("FILE EXISTS")
+			#piece length 65536
+			#file size 4641991
 			return True
 
 		else:
@@ -153,7 +157,9 @@ class Client:
 		return get_request
 
 	def handle_tracker_response(self):
+		print("Raw Response: ", self.response)
 		decoded_response = self.response.decode('utf-8') 
+		print("Decoded Response: ", decoded_response)
 		split_decoded = decoded_response.split('\r\n\r\n')
 		response_dict = decode(split_decoded[1].encode('utf-8'))
 		print("Tracker response: ", response_dict)
@@ -172,6 +178,7 @@ class Client:
 			#parse list of peers
 			peerlist = list()
 			unparsed_peers = response_dict[b'peers']
+			print(unparsed_peers)
 
 			#add peers to list of tuples (IP, port)
 			for x in range(len(unparsed_peers)//6):
@@ -185,8 +192,8 @@ class Client:
 
 			#for each peer in peer list, check if connected
 			for (IP, port) in self.peer_list:
-				print(self.ip_addr, IP, self.ip_addr != IP)
-				print(self.port, port, self.port != port)
+				#print(self.ip_addr, IP, self.ip_addr != IP)
+				#print(self.port, port, self.port != port)
 				if (IP != self.ip_addr) or (port != self.port):
 					for connection in self.connection_list:
 						if (IP == connection.peer_ip_addr) and (port == connection.peer_port):
@@ -240,15 +247,63 @@ class Client:
 	def listen_to_peer(self, peer, address):
 		while True:
 			try:
-				data = peer.recv(1024)
-				if data:
-					print("received data")
-					peer.send(b'Hello')
+				message = peer.recv(1024)
+				if message:
+					print("received message")
+					#check messsage type
+					message_prefix = message[0:4]
+					message_id = message[4]
+					if message_prefix == 1:
+						if message_id == 0:
+							#choke
+							self.peer_choking == 1
+						elif message_id == 1:
+							#unchoke
+							self.peer_choking == 0
+						elif message_id == 2:
+							self.peer_interested == 1
+						elif message_id == 3:
+							self.peer_interested = 0
+						else:
+							print("Invalid Message")
+					elif message_prefix == 5:
+						#have message
+						print("Have Message")
+					elif message_prefix == 1 + len(self.peer_bitfield):
+						if message_id == 5:
+							#bitfield message
+							#check that bitfield is correct length
+							self.peer_bitfield = message[5:6+len(self.peer_bitfield)]
+							print(self.peer_bitfield)
+					elif message_prefix == 13:
+						index = message[5:9]
+						begin = message[9:13]
+						length = message[13:17]
+						if message_id == 6:
+							#request message
+							print("Request message")
+						elif message_id == 8:
+							#cancel message
+							print("Cancel Message")
+						else:
+							print("Invalid Message")
+					#default block size is 16384
+					elif message_prefix == 9 + 16384:
+						if message_id == 7:
+							#piece message
+							index = message[5:9]
+							begin = message[9:13]
+							piece = message[13:16397]
+							#save piece
+						else:
+							print("Invalid Message")
+					else:
+						print("Invalid Message")
+
 					time.sleep(1)
 				else:
 					print("Client Disconnected")
 			except:
-				peer.close()
 				return False
 
 	def next_piece(self):

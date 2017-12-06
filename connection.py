@@ -27,5 +27,56 @@ class Connection(Thread):
 			time.sleep(1)
 			self.sock.send(bytearray(map(ord, "Give me things please")))
 			print("sent stuff to ", self.sock.getsockname()[0], "over port ", self.sock.getsockname()[1])
-			response = self.sock.recv(16384)
-			print("Got reply ", response)
+			message = self.sock.recv(16384)
+			print("Got message ", message)
+
+			#check messsage type
+			message_prefix = message[0:4]
+			message_id = message[4]
+			if message_prefix == 1:
+				if message_id == 0:
+					#choke
+					self.peer_choking == 1
+				elif message_id == 1:
+					#unchoke
+					self.peer_choking == 0
+				elif message_id == 2:
+					self.peer_interested == 1
+				elif message_id == 3:
+					self.peer_interested = 0
+				else:
+					print("Invalid Message")
+			elif message_prefix == 5:
+				#have message
+				print("Have Message")
+			elif message_prefix == 1 + len(self.peer_bitfield):
+				if message_id == 5:
+					#bitfield message
+					#check that bitfield is correct length
+					self.peer_bitfield = message[5:6+len(self.peer_bitfield)]
+					print(self.peer_bitfield)
+			elif message_prefix == 13:
+				index = message[5:9]
+				begin = message[9:13]
+				length = message[13:17]
+				if message_id == 6:
+					#request message
+					print("Request Message")
+				elif message_id == 8:
+					#cancel message
+					print("Cancel Message")
+				else:
+					print("Invalid Message")
+			#default block size = piece size = 65536
+			elif message_prefix == 9 + 65536:
+				if message_id == 7:
+					#piece message
+					index = message[5:9]
+					begin = message[9:13]
+					piece = message[13:65536+13]
+					#save piece
+				else:
+					print("Invalid Message")
+			else:
+				print("Invalid Message")
+
