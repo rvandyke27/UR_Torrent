@@ -28,6 +28,7 @@ class Metainfo:
 		self.pieces = self.info_dict[b'pieces']
 		self.num_pieces = math.ceil(self.info_dict[b'length']/self.info_dict[b"piece length"])
 
+		self.print()
 
 	def print(self):
 		print("metainfo file:  " + "UR.mp3.torrent")
