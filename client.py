@@ -90,6 +90,7 @@ class Client:
 			for connection in self.connection_list:
 				if connection.has_piece(index):
 					#request the piece from the peer
+					print("Requesting piece ", str(index), " from ", connection.peer_port )
 					self.request_piece(index, connection)
 
 		#stop when bitfield is full
@@ -233,7 +234,7 @@ class Client:
 
 	def initiate_handshaking(self, IP, port):
 		handshake_message = self.generate_handshake_msg()
-		new_connection = Connection(self, IP, port, BitArray(self.metainfo.num_pieces).set(False))
+		new_connection = Connection(self, IP, port, BitArray(self.metainfo.num_pieces))
 		#send start of handshake
 		new_connection.sock.send(handshake_message)
 		print("Handshake initiated ", handshake_message)
@@ -246,8 +247,6 @@ class Client:
 			self.connection_list.append(new_connection)
 
 			new_connection.start()
-
-			#new_connection.join()
 
 
 			#listen for bitfield?
@@ -278,18 +277,16 @@ class Client:
 						piece_payload = bytearray(b'\x07')
 						piece_payload.extend(index)
 						piece_payload.extend(begin)
-						print("Piece Message: ", piece_payload)
-						filename = "temp-" + str(int.from_bytes(index, byteorder='big')) + self.metainfo.filename
+						print("Sending piece Message: ", piece_payload)
+						int_index = struct.unpack('>i', index)[0]
+						filename = "temp-" + str(int_index) + self.metainfo.filename
 						f = open(filename, 'rb')
 						b = bytearray()
-						b = f.read(65536)
-						if not b:
-							while True:
-								k = f.read(1)
-								if k:
-									b.extend(k)
-								else:
-									break
+						if int_index < self.metainfo.num_pieces-1:
+							b = f.read(65536)
+						else:
+							b = f.read(self.metainfo.file_length % self.metainfo.piece_length)
+							#print("Last piece data: ", b)
 
 						piece_payload.extend(b)
 						piece_message = bytearray(struct.pack('>i',len(piece_payload)))
@@ -300,16 +297,6 @@ class Client:
 					elif message_id == 8:
 							#cancel message
 							print("Cancel Message")
-					elif message_id == 0:
-						#choke
-						self.peer_choking == 1
-					elif message_id == 1:
-						#unchoke
-						self.peer_choking == 0
-					elif message_id == 2:
-						self.peer_interested == 1
-					elif message_id == 3:
-						self.peer_interested = 0
 					elif message_id == 4:
 						#have message
 						print("Have Message")
@@ -341,6 +328,8 @@ class Client:
 
 	def next_piece(self):
 		#find missing piece
+		print("Choose next piece")
+		time.sleep(.2)
 		for j in range(self.metainfo.num_pieces):
 			if self.bitfield.bin[j] == '0':
 				return j
@@ -349,20 +338,21 @@ class Client:
 
 
 	def request_piece(self, index, peer_connection):
-		piece_request = bytearray()
+		piece_request = bytearray(18)
 		piece_request[0:4] = struct.pack('>i', int(13))
 		piece_request[4] = 6
 		piece_request[5:9] = struct.pack('>i', int(index))
 		piece_request[9:13] = struct.pack('>i', int(0))
 		if index < self.metainfo.num_pieces-1:
-			piece_request[13:17] = struct.pack('>i', int(self.client.metainfo.piece_length))
+			piece_request[13:17] = struct.pack('>i', int(self.metainfo.piece_length))
 		else:
 			print("Last Piece")
 			file_size = self.metainfo.file_length
 			last_piece_size = file_size % self.metainfo.num_pieces
-			print(last_piece_size)
+			#print(last_piece_size)
 			piece_request[13:17] = struct.pack('>i', int(last_piece_size))
 
+		print("Sending piece request: ", piece_request)
 		peer_connection.sock.send(piece_request)
 		return 0
 
@@ -424,7 +414,6 @@ class Client:
 				peer_connection, address = self.listening_socket.accept()
 				print(i)
 				buf = peer_connection.recv(1024)
-				print("maybe receive stuff")
 				#print(len(buf))
 				#if message is handshake
 				
@@ -441,6 +430,16 @@ class Client:
 					self.listen_list.append(new_listener)
 					#print(self.listen_list[0])
 					peer_connection.send(self.generate_handshake_msg())
+
+					time.sleep(.1)
+
+					#send bitfield message
+					bitfield_message = bytearray(1+self.metainfo.num_pieces)
+					bitfield_message[0:4] = struct.pack('>i', int(1+self.metainfo.num_pieces))
+					bitfield_message[4] = 5
+					bitfield_message[5:] = self.bitfield
+					print("Sending bitfield message: ", bitfield_message)
+					peer_connection.send(bitfield_message)
 
 					#split off thread to listen for piece requests on this socket
 					peer_connection.settimeout(120)

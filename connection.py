@@ -11,7 +11,6 @@ import hashlib
 
 class Connection(Thread):
 
-<<<<<<< HEAD
 	def __init__(self, client_leecher, ip_addr, port, peer_bitfield):
 		Thread.__init__(self)
 		atexit.register(self.exit_handler)
@@ -27,14 +26,16 @@ class Connection(Thread):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		self.sock.connect((socket.gethostbyname(self.peer_ip_addr), self.peer_port))
-		self.client.connection_list.append(self)
+		#self.client.connection_list.append(self)
+
+		print(self.peer_bitfield)
 
 	def run(self):
 		
 		while not self.client.bitfield.all(True):
 			try:
 				message = self.sock.recv(65549)
-				print("Got reply ")
+				print("Got message ")
 
 				if message:
 					#check messsage type
@@ -62,6 +63,7 @@ class Connection(Thread):
 							if(piece):
 								fout.write(piece)
 								#update bitfield
+								self.client.bitfield.set(True, int_index)
 							fout.close()
 							self.client.downloaded+=1
 						else:
@@ -80,10 +82,19 @@ class Connection(Thread):
 						#have message
 						print("Have Message")
 					elif message_id == 5 :
+						print("Bitfield message")
 						#bitfield message
 						#check that bitfield is correct length
-						self.peer_bitfield = message[5:6+len(self.peer_bitfield)]
-						print(self.peer_bitfield)
+						if len(message) == 5 + self.client.metainfo.num_pieces:
+							for k in range(self.client.metainfo.num_pieces):
+								#print(message[5+k])
+								if message[5+k]== 1:
+									self.peer_bitfield.set(True,k)
+								else:
+									self.peer_bitfield.set(False, k)
+							print(self.peer_bitfield.bin)
+						else:
+							print("Incorrect length of bitfield")
 					elif message_id == 6:
 						index = message[5:9]
 						begin = message[9:13]
