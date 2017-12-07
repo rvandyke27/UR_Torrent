@@ -105,9 +105,18 @@ class Client:
 
 	
 	def send_have_message(self, index):
-		print("TODO")
+		have_message = bytearray(9)
+		have_message[0:4] = struct.pack('>i', int(5))
+		have_message[4] = struct.pack('>i', int(4))
+		have_message[5:9] = struct.pack('>i', int(index))
+		for listener in listen_list:
+			print("Sending have message ", have_message, "to ", listener)
+			socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+			socket.connect(listener)
+			socket.send(have_message)
+			socket.close()
 		return
-
 
 	def check_for_file(self):
 		if os.path.exists(self.filename):
@@ -180,7 +189,6 @@ class Client:
 		print("GET request: ", get_request)
 
 		#send HTTP request to tracker
-
 		self.tracker_socket.send(get_request)
 
 		return get_request
@@ -327,11 +335,11 @@ class Client:
 
 	def next_piece(self):
 		#find missing piece
-		print("Choose piece")
+		#print("Choose piece")
 		while True:
 			j = randint(0, self.metainfo.num_pieces-1)
 			if self.bitfield.bin[j] == '0':
-				print("Chose next piece index = ", j)
+				#print("Chose next piece index = ", j)
 				return j
 		else:
 			return 0
@@ -385,10 +393,6 @@ class Client:
 
 			f.write(b)
 
-		#for fl in os.listdir():
-		#	if "temp" in fl:
-		#		os.remove(fl)
-
 	def exit_handler(self):
 		self.send_GET_request(2)
 		print("Client closing")
@@ -403,7 +407,6 @@ class Client:
 
 
 	def listen_for_handshake(self):
-
 		#listen for handshakes
 		i = 0
 		while True:

@@ -31,7 +31,6 @@ class Connection(Thread):
 		print(self.peer_bitfield)
 
 	def run(self):
-		print("Running")
 		print(self.client.bitfield.bin)
 		while True:
 			try:
@@ -65,6 +64,7 @@ class Connection(Thread):
 								#update bitfield
 								self.client.bitfield.set(True, int_index)
 								print(self.client.bitfield.bin)
+								#self.client.send_have_message(int_index)
 							fout.close()
 							self.client.downloaded+=1
 						else:
@@ -81,9 +81,12 @@ class Connection(Thread):
 						self.peer_interested = 0
 					elif message_id == 4:
 						#have message
-						print("Have Message")
+						print("Have Message Received")
+						index = message[5:9]
+						int_index = struct.unpack('>i', index)[0]
+						self.peer_bitfield.set(True, int_index)
 					elif message_id == 5 :
-						print("Bitfield message")
+						print("Bitfield Message Received")
 						#bitfield message
 						#check that bitfield is correct length
 						if len(message) == 5 + self.client.metainfo.num_pieces:
