@@ -11,6 +11,7 @@ import hashlib
 
 class Connection(Thread):
 
+<<<<<<< HEAD
 	def __init__(self, client_leecher, ip_addr, port, peer_bitfield):
 		Thread.__init__(self)
 		atexit.register(self.exit_handler)
@@ -55,7 +56,7 @@ class Connection(Thread):
 						if (piece_hash == self.client.metainfo.get_piece_hash(int_index)):
 							print("Piece hash verified")
 							#save piece
-							temp_filename = "temp-" + str(int.from_bytes(index, byteorder='big')) + self.client.filename
+							temp_filename = "temp-" + str(int_index) + self.client.filename
 							print(temp_filename)
 							fout = open(temp_filename, 'w+b')
 							if(piece):
@@ -117,4 +118,5 @@ class Connection(Thread):
 	def exit_handler(self):
 		print("Connection closing")
 		self.sock.close()
+
 
