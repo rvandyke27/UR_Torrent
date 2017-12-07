@@ -31,11 +31,11 @@ class Connection(Thread):
 		print(self.peer_bitfield)
 
 	def run(self):
-		
-		while not self.client.bitfield.all(True):
+		print("Running")
+		print(self.client.bitfield.bin)
+		while True:
 			try:
 				message = self.sock.recv(65549)
-				print("Got message ")
 
 				if message:
 					#check messsage type
@@ -64,6 +64,7 @@ class Connection(Thread):
 								fout.write(piece)
 								#update bitfield
 								self.client.bitfield.set(True, int_index)
+								print(self.client.bitfield.bin)
 							fout.close()
 							self.client.downloaded+=1
 						else:

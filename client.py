@@ -17,6 +17,7 @@ import codecs
 import atexit
 import pickle
 from threading import Thread
+from random import randint
 import struct
 
 class Client:
@@ -81,9 +82,12 @@ class Client:
 		listening_thread.daemon = True
 		listening_thread.start()
 
-
 	def leech(self):
-		while not self.bitfield.all(True):
+		while True:
+			time.sleep(.2)
+			if self.bitfield.all(True):
+				print(self.bitfield.all(True))
+				break
 			#determine which piece to look for
 			index = self.next_piece()
 			#see who on peer list has the piece
@@ -92,8 +96,9 @@ class Client:
 					#request the piece from the peer
 					print("Requesting piece ", str(index), " from ", connection.peer_port )
 					self.request_piece(index, connection)
-
+					break
 		#stop when bitfield is full
+		print("done")
 		self.reassemble_file()
 		return
 		#close connections but keep listening
@@ -248,12 +253,6 @@ class Client:
 
 			new_connection.start()
 
-
-			#listen for bitfield?
-
-
-		
-
 	def listen_to_peer(self, peer, address):
 		while True:
 			try:
@@ -328,10 +327,11 @@ class Client:
 
 	def next_piece(self):
 		#find missing piece
-		print("Choose next piece")
-		time.sleep(.2)
-		for j in range(self.metainfo.num_pieces):
+		print("Choose piece")
+		while True:
+			j = randint(0, self.metainfo.num_pieces-1)
 			if self.bitfield.bin[j] == '0':
+				print("Chose next piece index = ", j)
 				return j
 		else:
 			return 0
@@ -385,9 +385,9 @@ class Client:
 
 			f.write(b)
 
-		for fl in os.listdir():
-			if "temp" in fl:
-				os.remove(fl)
+		#for fl in os.listdir():
+		#	if "temp" in fl:
+		#		os.remove(fl)
 
 	def exit_handler(self):
 		self.send_GET_request(2)
