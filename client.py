@@ -82,7 +82,7 @@ class Client:
 		thread.daemon = True
 		thread.start()
 
-
+		#print(self.listen_list[0])
 
 			#if message is request for piece
 		#	elif len(buf) > 0:
@@ -213,7 +213,7 @@ class Client:
 						handshake_thread = threading.Thread(target = self.initiate_handshaking, args = (IP, port))
 						handshake_thread.daemon = True
 						handshake_thread.start()
-						print(threading.activeCount())
+
 						handshake_thread.join()
 						#self.initiate_handshaking(IP, port)
 
@@ -233,7 +233,7 @@ class Client:
 			self.connection_list.append(new_connection)
 
 			new_connection.start()
-			print(threading.activeCount())
+
 			#new_connection.join()
 
 
@@ -300,11 +300,14 @@ class Client:
 					elif message_id == 4:
 						#have message
 						print("Have Message")
+						#self.bitfield.bin[]
 					elif message_id == 5:
 						#bitfield message
 						#check that bitfield is correct length
-						self.peer_bitfield = message[5:6+len(self.peer_bitfield)]
-						print(self.peer_bitfield)
+						if(len(self.bitfield.bin) == len(message[5:])):
+							print("Received bitfield of ", message[5:])
+						#self.peer_bitfield.bin = message[5:6+len(self.peer_bitfield)]
+						#print(self.peer_bitfield)
 					#default block size is 16384
 					elif message_id == 7:
 						#piece message
@@ -406,16 +409,21 @@ class Client:
 					#port = connection_socket.getsockname()[1]
 					#connection_socket.close()
 					print("Received valid handshake", buf)
+					#self.listen_list.append()
 
+					new_listener = (peer_connection.getsockname()[0], address)
+
+					self.listen_list.append(new_listener)
+					#print(self.listen_list[0])
 					peer_connection.send(self.generate_handshake_msg())
 
 					#split off thread to listen for piece requests on this socket
 					peer_connection.settimeout(120)
 					listen_thread = threading.Thread(target = self.listen_to_peer, args = (peer_connection, address))
 					listen_thread.daemon = True
-					print("Before Listening Thread: ", threading.activeCount())
+
 					listen_thread.start()
-					print("After Listening Thread: ", threading.activeCount())
+
 				#	listen_thread.join()
 					#listen = Listen(self)
 					#listen.start()
@@ -429,6 +437,8 @@ class Client:
 				print("Closing")
 				peer_connection.close()
 				break
+
+
 
 	
 
