@@ -30,40 +30,12 @@ class Connection(Thread):
 
 	def run(self):
 		
-		while True:
-	#   while not self.client.bitfield.all(True):
-			#check choking/interested condition
+		while not self.client.bitfield.all(True):
+			try:
+				message = self.sock.recv(65549)
+				print("Got reply ")
 
-
-			time.sleep(.1)
-			for i in range(self.client.metainfo.num_pieces):
-				print(i)
-				piece_request = bytearray(14)
-				piece_request[0:4] = struct.pack('>i', int(13))
-				piece_request[4] = 6
-				piece_request[5:9] = struct.pack('>i', int(i))
-				piece_request[9:13] = struct.pack('>i', int(0))
-
-				#hardcode length for now
-
-
-
-				if i < self.client.metainfo.num_pieces-1:
-					piece_request[13:17] = struct.pack('>i', int(self.client.metainfo.piece_length))
-				else:
-					print("Last Piece")
-					file_size = self.client.metainfo.file_length
-					last_piece_size = file_size % self.client.metainfo.num_pieces
-					print(last_piece_size)
-					piece_request[13:17] = struct.pack('>i', int(last_piece_size))
-				try:
-					print("Sending piece request: ", piece_request)
-					self.sock.send(piece_request)
-					print("Asking  ", self.peer_ip_addr, "on port ", self.peer_port)
-					message = self.sock.recv(65549)
-					print("Got reply ")
-
-
+				if message:
 					#check messsage type
 					message_prefix = message[0:4]
 					message_id = message[4]
@@ -75,7 +47,7 @@ class Connection(Thread):
 						begin = message[9:13]
 						piece = message[13:]
 						#check info hash
-						int_index = int.from_bytes(index, byteorder='big')
+						int_index = struct.unpack('>i', index)[0]
 						print(int_index)
 						piece_hash = hashlib.sha1(piece).hexdigest()
 						print(piece_hash)
@@ -126,18 +98,21 @@ class Connection(Thread):
 					else:
 						print("Invalid Message")
 
-				except Exception as exc: 
-					print(str(exc))
-					self.sock.close()
-					break
-
-				except KeyboardInterrupt:
-					print("closing")
-					self.sock.close()
-					break
-			else:
-				self.client.reassemble_file()
+			except Exception as exc: 
+				print(str(exc))
+				self.sock.close()
 				break
+
+			except KeyboardInterrupt:
+				print("closing")
+				self.sock.close()
+				break
+
+	def has_piece(self, index):
+		if self.peer_bitfield.bin[index] == '1':
+			return True
+		else:
+			return False
 
 	def exit_handler(self):
 		print("Connection closing")

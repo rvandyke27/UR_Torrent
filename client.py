@@ -78,21 +78,30 @@ class Client:
 
 
 
-		thread = threading.Thread(target = self.listen_for_handshake)
-		thread.daemon = True
-		thread.start()
+		listening_thread = threading.Thread(target = self.listen_for_handshake)
+		listening_thread.daemon = True
+		listening_thread.start()
 
 
+	def leech(self):
+		while not self.bitfield.all(True):
+			#determine which piece to look for
+			index = self.next_piece()
+			#see who on peer list has the piece
+			for connection in self.connection_list:
+				if connection.has_piece(index):
+					#request the piece from the peer
+					self.request_piece(index, connection)
 
-			#if message is request for piece
-		#	elif len(buf) > 0:
-		#		print("Got request: ", buf)
-		#		connection_socket.send(bytearray(map(ord, "HELLO FRIEND")))
-		#		print("Sent reply to ", address)
-			
-	#		peer_connection.close()
-			
+		#stop when bitfield is full
+		self.reassemble_file()
+		return
+		#close connections but keep listening
 	
+	def send_have_message(self, index):
+		print("TODO")
+		return
+
 
 	def check_for_file(self):
 		if os.path.exists(self.filename):
@@ -129,6 +138,11 @@ class Client:
 
 		else:
 			print("FILE DOESN'T EXIST")
+
+			requesting_thread = threading.Thread(target = self.leech)
+			requesting_thread.daemon = True
+			requesting_thread.start()
+
 			return False
 
 		#if file is in local directory start running in seeder state
@@ -215,7 +229,6 @@ class Client:
 						handshake_thread.start()
 						print(threading.activeCount())
 						handshake_thread.join()
-						#self.initiate_handshaking(IP, port)
 
 
 	def initiate_handshaking(self, IP, port):
@@ -233,7 +246,7 @@ class Client:
 			self.connection_list.append(new_connection)
 
 			new_connection.start()
-			print(threading.activeCount())
+			#print(threading.activeCount())
 			#new_connection.join()
 
 
@@ -324,18 +337,30 @@ class Client:
 				return False
 
 	def next_piece(self):
-		#find random rarest missing pieces
-		#return index of piece
-		return 0
+		#find missing piece
+		for j in range(self.metainfo.num_pieces):
+			if self.bitfield.bin[j] == '0':
+				return j
+		else:
+			return 0
 
 
-	def request_piece(self, index):
+	def request_piece(self, index, peer_connection):
+		piece_request = bytearray()
+		piece_request[0:4] = struct.pack('>i', int(13))
+		piece_request[4] = 6
+		piece_request[5:9] = struct.pack('>i', int(index))
+		piece_request[9:13] = struct.pack('>i', int(0))
+		if index < self.metainfo.num_pieces-1:
+			piece_request[13:17] = struct.pack('>i', int(self.client.metainfo.piece_length))
+		else:
+			print("Last Piece")
+			file_size = self.metainfo.file_length
+			last_piece_size = file_size % self.metainfo.num_pieces
+			print(last_piece_size)
+			piece_request[13:17] = struct.pack('>i', int(last_piece_size))
 
-		#find peers that client is interested in that are not choking client
-		#request desired piece of file
-		#while file not complete
-			#i = next_piece()
-			#request_piece(i)
+		peer_connection.sock.send(piece_request)
 		return 0
 
 	#generate handshake message 
